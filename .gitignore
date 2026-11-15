@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Local Databases & Logs
+*.db
+*.db-shm
+*.db-wal
+*.log
+npm-debug.log*
+
+# Environment & Editor
+.env
+.env.local
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+.DS_Store

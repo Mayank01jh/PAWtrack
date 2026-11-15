@@ -1,0 +1,2439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Pawtrack — Canine Biometrics & Collar Telemetry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       PAWTRACK DESIGN SYSTEM — 60:30:10 LUXURY LIGHT ARCHITECTURE
+       60% Base:    #F8FAFC (Ultra-clean slate canvas)
+       30% Surface: #FFFFFF (Pure cards, navigation, controls with hairline borders)
+       10% Accent:  #0F172A (Deep Obsidian primary) & #2563EB (High-precision Royal Blue)
+       ========================================================================== */
+    :root {
+      --bg-base: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-surface-subtle: #F1F5F9;
+      --border-subtle: #E2E8F0;
+      --border-strong: #CBD5E1;
+      
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --text-soft: #94A3B8;
+
+      --accent: #2563EB;
+      --accent-hover: #1D4ED8;
+      --accent-light: #EFF6FF;
+      --accent-ring: rgba(37, 99, 235, 0.16);
+
+      --obsidian: #0F172A;
+      --obsidian-hover: #1E293B;
+
+      --emerald: #059669;
+      --emerald-bg: #ECFDF5;
+      --emerald-border: #A7F3D0;
+
+      --amber: #D97706;
+      --amber-bg: #FFFBEB;
+      --amber-border: #FDE68A;
+
+      --rose: #E11D48;
+      --rose-bg: #FFF1F2;
+      --rose-border: #FECDD3;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.04), 0 6px 16px -4px rgba(15, 23, 42, 0.03);
+      --shadow-dropdown: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      --shadow-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.18);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-full: 9999px;
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 14.5px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
+
+    /* Tabular figures for telemetry */
+    .num {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+    }
+
+    /* Container */
+    .app-container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* Header Navigation */
+    .nav-header {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 16px 0;
+    }
+
+    .nav-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--obsidian);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--obsidian);
+    }
+
+    .brand-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--bg-surface-subtle);
+      color: var(--text-muted);
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Premium Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      padding: 9px 16px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      outline: none;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+    }
+
+    .btn-primary {
+      background: var(--obsidian);
+      color: #FFFFFF;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+    }
+    .btn-primary:hover {
+      background: var(--obsidian-hover);
+      transform: translateY(-0.5px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #FFFFFF;
+    }
+    .btn-accent:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-surface-subtle);
+      border-color: var(--border-strong);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover {
+      background: var(--bg-surface-subtle);
+      color: var(--text-main);
+    }
+
+    .btn-danger-ghost {
+      background: transparent;
+      color: var(--rose);
+      border: 1px solid var(--rose-border);
+    }
+    .btn-danger-ghost:hover {
+      background: var(--rose-bg);
+    }
+
+    .btn-danger {
+      background: var(--rose);
+      color: #fff;
+    }
+    .btn-danger:hover {
+      background: #be123c;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12.5px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Screen Views */
+    .view-panel {
+      display: none;
+      animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .view-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Page Header */
+    .page-head {
+      margin: 32px 0 24px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .page-title-group h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+    }
+
+    .page-title-group p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 24px;
+      position: relative;
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      line-height: 1.2;
+      border: 1px solid transparent;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .badge-street {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border-color: var(--amber-border);
+    }
+    .badge-street .badge-dot { background: var(--amber); }
+
+    .badge-adopted {
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      border-color: var(--emerald-border);
+    }
+    .badge-adopted .badge-dot { background: var(--emerald); }
+
+    .badge-shelter {
+      background: #EFF6FF;
+      color: #2563EB;
+      border-color: #BFDBFE;
+    }
+    .badge-shelter .badge-dot { background: #2563EB; }
+
+    .badge-missing {
+      background: var(--rose-bg);
+      color: var(--rose);
+      border-color: var(--rose-border);
+    }
+    .badge-missing .badge-dot { background: var(--rose); }
+
+    /* Directory Grid */
+    .dog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 18px;
+    }
+
+    .dog-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    .dog-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.08);
+    }
+
+    .dog-card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .dog-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-subtle);
+      object-fit: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-soft);
+      flex-shrink: 0;
+    }
+
+    .dog-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      object-fit: cover;
+    }
+
+    .dog-meta h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.015em;
+    }
+
+    .dog-meta p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .dog-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .info-pill {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--bg-surface-subtle);
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .info-pill svg {
+      width: 12px;
+      height: 12px;
+      stroke-width: 2;
+    }
+
+    .dog-card-footer {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .collar-ref {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-surface-subtle);
+      padding: 3px 7px;
+      border-radius: 4px;
+    }
+
+    /* Empty State */
+    .empty-card {
+      text-align: center;
+      padding: 64px 24px;
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-xl);
+    }
+
+    .empty-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--bg-surface-subtle);
+      color: var(--text-muted);
+      border-radius: var(--radius-lg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .empty-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .empty-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 360px;
+      margin: 0 auto 20px;
+    }
+
+    /* Form Styles */
+    .form-card {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-full {
+      grid-column: span 2;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .form-control {
+      width: 100%;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      color: var(--text-main);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      transition: all 0.15s ease;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    /* Segmented Controls */
+    .segmented {
+      display: flex;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-subtle);
+      padding: 3px;
+      border-radius: var(--radius-md);
+      gap: 2px;
+    }
+
+    .segmented-btn {
+      flex: 1;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .segmented-btn.active {
+      background: #FFFFFF;
+      color: var(--text-main);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Photo Upload Area */
+    .photo-uploader {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .photo-preview {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface-subtle);
+      border: 1px dashed var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .photo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ==========================================================================
+       DASHBOARD STYLING
+       ========================================================================== */
+    .dash-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .dash-head-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .dash-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .conn-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+    }
+
+    .conn-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-soft);
+    }
+
+    .conn-status.live .conn-dot {
+      background: var(--emerald);
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+      animation: pulseGreen 2s infinite;
+    }
+
+    .conn-status.sim .conn-dot {
+      background: var(--amber);
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+    }
+
+    @keyframes pulseGreen {
+      0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+    }
+
+    /* Hardware Bar */
+    .hardware-bar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hw-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hw-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: var(--accent-light);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hw-info {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .hw-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .hw-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hw-input {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      width: 150px;
+      padding: 7px 10px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      outline: none;
+    }
+    .hw-input:focus {
+      border-color: var(--accent);
+    }
+
+    /* Metric Cards Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+    }
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .metric-badge-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-surface-subtle);
+      color: var(--text-muted);
+    }
+
+    .metric-value {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Battery Level Bar */
+    .gauge-track {
+      width: 100%;
+      height: 5px;
+      background: var(--bg-surface-subtle);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--emerald);
+      border-radius: var(--radius-full);
+      transition: width 0.4s ease, background 0.4s ease;
+    }
+
+    /* Chart Card */
+    .chart-card {
+      margin-bottom: 20px;
+    }
+
+    .chart-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .chart-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .chart-canvas-wrap {
+      width: 100%;
+      height: 160px;
+      position: relative;
+    }
+
+    canvas#tempChart {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Quick Toolbar */
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Alerts Panel */
+    .alert-panel {
+      margin-bottom: 20px;
+    }
+
+    .alert-list {
+      list-style: none;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .alert-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 13px;
+    }
+    .alert-row:last-child { border-bottom: none; }
+
+    .alert-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert-tag-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .alert-time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    /* Audit Table */
+    .table-responsive {
+      max-height: 260px;
+      overflow-y: auto;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      margin-top: 12px;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    table.data-table th {
+      position: sticky;
+      top: 0;
+      background: var(--bg-surface-subtle);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    table.data-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    table.data-table tr:hover td {
+      background: #F8FAFC;
+    }
+
+    /* Modal Backdrop */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 20px;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-dialog {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-modal);
+      width: 100%;
+      max-width: 480px;
+      transform: scale(0.96);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .modal-overlay.open .modal-dialog {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .camera-frame {
+      width: 100%;
+      height: 260px;
+      background: #0F172A;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-soft);
+      overflow: hidden;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .camera-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* ==========================================================================
+       RESPONSIVE WEB DESIGN (RWD) ARCHITECTURE
+       Breakpoints:
+         - Mobile S/M/L: <= 480px, <= 640px
+         - Tablet: 641px - 1023px
+         - Desktop: >= 1024px
+       ========================================================================== */
+
+    /* Touch & Base Responsive Optimizations */
+    button, input, select, textarea {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .table-responsive {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Container fluid gutters */
+    @media (max-width: 640px) {
+      .app-container {
+        padding: 0 16px 60px;
+      }
+      .nav-inner {
+        padding: 0 16px;
+      }
+      .card {
+        padding: 18px 16px;
+        border-radius: var(--radius-md);
+      }
+    }
+
+    /* Navigation header responsiveness */
+    @media (max-width: 480px) {
+      .brand-tag {
+        display: none;
+      }
+      .brand-title {
+        font-size: 15px;
+      }
+      .nav-actions .btn {
+        padding: 7px 12px;
+        font-size: 12.5px;
+      }
+    }
+
+    /* Page head stacking */
+    @media (max-width: 640px) {
+      .page-head {
+        margin: 20px 0 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .page-head > .btn-primary, .page-head > .btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 42px;
+      }
+      .page-title-group h1 {
+        font-size: 21px;
+      }
+    }
+
+    /* Directory dog cards grid */
+    @media (max-width: 600px) {
+      .dog-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .dog-card {
+        padding: 16px;
+      }
+      .dog-avatar {
+        width: 48px;
+        height: 48px;
+      }
+    }
+
+    /* Registration & Edit Form */
+    @media (max-width: 640px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .form-full {
+        grid-column: span 1;
+      }
+      .form-card {
+        padding: 20px 16px;
+      }
+      .form-control {
+        font-size: 16px; /* Prevents auto-zoom on iOS */
+        min-height: 42px;
+      }
+      .segmented-btn {
+        min-height: 38px;
+        font-size: 12px;
+        padding: 8px 4px;
+      }
+      .form-action-row {
+        flex-direction: column-reverse;
+        width: 100%;
+      }
+      .form-action-row .btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+      }
+      .form-delete-block .btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 42px;
+      }
+    }
+
+    /* Hardware Sync Bar */
+    @media (max-width: 680px) {
+      .hardware-bar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px;
+        gap: 12px;
+      }
+      .hw-left {
+        width: 100%;
+      }
+      .hw-right {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+      .hw-input {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+        min-height: 42px;
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+      .hw-right .btn {
+        flex-shrink: 0;
+        min-height: 42px;
+        padding: 8px 16px;
+      }
+    }
+
+    /* Metric Cards Grid */
+    @media (max-width: 1024px) {
+      .metric-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+    }
+    @media (max-width: 480px) {
+      .metric-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .metric-card {
+        padding: 14px 12px;
+      }
+      .metric-value {
+        font-size: 20px;
+      }
+      .metric-value.num#valGps {
+        font-size: 12.5px !important;
+        line-height: 1.3;
+        word-break: break-all;
+      }
+      .metric-label {
+        font-size: 10.5px;
+      }
+      .metric-sub {
+        font-size: 10.5px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+      }
+    }
+    @media (max-width: 350px) {
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Temperature Chart & Controls */
+    @media (max-width: 640px) {
+      .chart-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .chart-head .segmented {
+        width: 100%;
+      }
+      .chart-head .segmented-btn {
+        text-align: center;
+        min-height: 38px;
+      }
+      .chart-canvas-wrap {
+        height: 140px;
+      }
+      .toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .toolbar-left {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+      .toolbar-left .btn {
+        flex: 1;
+        justify-content: center;
+        min-height: 40px;
+      }
+      .toolbar-right {
+        width: 100%;
+      }
+      .toolbar-right .btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 42px;
+        padding: 10px 16px;
+      }
+    }
+
+    /* Telemetry Table Header & Filters */
+    @media (max-width: 640px) {
+      .telemetry-table-header {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 12px !important;
+      }
+      .telemetry-controls-group {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+      .telemetry-controls-group .segmented {
+        flex: 1;
+      }
+      .telemetry-controls-group .segmented-btn {
+        padding: 6px 4px;
+        font-size: 11px;
+        text-align: center;
+        min-height: 36px;
+      }
+      .telemetry-controls-group .btn {
+        min-height: 36px;
+        padding: 6px 12px;
+      }
+    }
+
+    /* Camera Modal */
+    @media (max-width: 520px) {
+      .modal-overlay {
+        padding: 12px;
+      }
+      .modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        border-radius: var(--radius-lg);
+      }
+      .modal-header, .modal-body {
+        padding: 16px;
+      }
+      .camera-frame {
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================== NAVIGATION ======================== -->
+  <nav class="nav-header">
+    <div class="nav-inner">
+      <div class="brand" onclick="navigate('directory')">
+        <div class="brand-icon">
+          <!-- Minimalist Pulse Mark Icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+        </div>
+        <span class="brand-title">PAWTRACK</span>
+        <span class="brand-tag">IoT TELEMETRY</span>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn btn-secondary btn-sm" id="navNewDogBtn" onclick="openCreateForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Dog
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="app-container">
+
+    <!-- ======================== SCREEN 1: DIRECTORY ======================== -->
+    <section id="viewDirectory" class="view-panel active">
+      <div class="page-head">
+        <div class="page-title-group">
+          <h1>Registered Dogs</h1>
+          <p id="directorySubtitle">Loading database records...</p>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Register Dog
+        </button>
+      </div>
+
+      <div id="dogGrid" class="dog-grid"></div>
+
+      <div id="emptyState" class="empty-card" style="display: none;">
+        <div class="empty-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="2"></circle><line x1="15" y1="8" x2="17" y2="8"></line><line x1="15" y1="12" x2="17" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>
+        </div>
+        <h3 class="empty-title">No Dogs Registered</h3>
+        <p class="empty-desc">Create your first pet or community dog profile to pair with an ESP32 collar and monitor live vitals.</p>
+        <button class="btn btn-primary" onclick="openCreateForm()">Register First Dog</button>
+      </div>
+    </section>
+
+
+    <!-- ======================== SCREEN 2: ADD / EDIT FORM ======================== -->
+    <section id="viewForm" class="view-panel">
+      <div class="page-head">
+        <div class="page-title-group">
+          <button class="btn btn-ghost btn-sm" style="margin-bottom: 8px;" onclick="navigate('directory')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Back to Directory
+          </button>
+          <h1 id="formHeading">Register Dog</h1>
+          <p>Complete profile, medical background, and collar pairing details.</p>
+        </div>
+      </div>
+
+      <div class="card form-card">
+        <form id="dogForm" onsubmit="handleFormSubmit(event)">
+          <!-- Photo Upload Preview -->
+          <div class="photo-uploader">
+            <div class="photo-preview" id="photoPreviewWrap">
+              <svg id="photoPlaceholder" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+              <img id="photoImg" style="display: none;" alt="Preview">
+            </div>
+            <div>
+              <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+                <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="previewPhoto(this)">
+                Select Photo
+              </label>
+              <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">Square JPG or PNG, max 2MB.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group form-full">
+              <label class="form-label">Dog Name *</label>
+              <input type="text" id="fName" class="form-control" placeholder="e.g. Sheru" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Breed / Mix</label>
+              <input type="text" id="fBreed" list="breedOptions" class="form-control" placeholder="e.g. Indian Pariah">
+              <datalist id="breedOptions">
+                <option value="Indian Pariah">
+                <option value="Labrador Mix">
+                <option value="German Shepherd Mix">
+                <option value="Indie / Mixed Breed">
+              </datalist>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Smart Collar ID</label>
+              <input type="text" id="fCollar" class="form-control num" placeholder="COLLAR-01">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Estimated Age (Years)</label>
+              <input type="number" id="fAge" class="form-control num" step="0.5" min="0" placeholder="2.5">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Weight (kg)</label>
+              <input type="number" id="fWeight" class="form-control num" step="0.1" min="0" placeholder="18.5">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">ABC Sterilization</label>
+              <div class="segmented" id="segSter">
+                <button type="button" class="segmented-btn active" data-v="unknown" onclick="setSegment('segSter','unknown')">Unknown</button>
+                <button type="button" class="segmented-btn" data-v="yes" onclick="setSegment('segSter','yes')">Yes</button>
+                <button type="button" class="segmented-btn" data-v="no" onclick="setSegment('segSter','no')">No</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Rabies Vaccinated</label>
+              <div class="segmented" id="segVax">
+                <button type="button" class="segmented-btn active" data-v="unknown" onclick="setSegment('segVax','unknown')">Unknown</button>
+                <button type="button" class="segmented-btn" data-v="yes" onclick="setSegment('segVax','yes')">Yes</button>
+                <button type="button" class="segmented-btn" data-v="no" onclick="setSegment('segVax','no')">No</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Temperament</label>
+              <select id="fTemp" class="form-control">
+                <option value="Friendly">Friendly</option>
+                <option value="Shy / cautious">Shy / cautious</option>
+                <option value="Nervous">Nervous</option>
+                <option value="Can be aggressive">Can be aggressive</option>
+                <option value="Unknown">Unknown</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select id="fStatus" class="form-control">
+                <option value="On the street">On the street</option>
+                <option value="Adopted">Adopted</option>
+                <option value="In shelter">In shelter</option>
+                <option value="Missing">Missing</option>
+              </select>
+            </div>
+
+            <div class="form-group form-full">
+              <label class="form-label">Territory / Area Landmark</label>
+              <input type="text" id="fArea" class="form-control" placeholder="e.g. Sector 62, Near Metro Station Gate 2">
+            </div>
+
+            <div class="form-group form-full">
+              <label class="form-label">Distinguishing Physical Marks</label>
+              <textarea id="fMarks" class="form-control" placeholder="e.g. White patch on chest, notched right ear"></textarea>
+            </div>
+          </div>
+
+          <div class="form-action-row" style="display: flex; gap: 12px; margin-top: 12px; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="navigate('directory')">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn">Save Record</button>
+          </div>
+
+          <div id="deleteBlock" class="form-delete-block" style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-subtle); display: none;">
+            <button type="button" class="btn btn-danger-ghost btn-sm" onclick="handleDelete()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Delete Dog Profile
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+
+    <!-- ======================== SCREEN 3: TELEMETRY DASHBOARD ======================== -->
+    <section id="viewDashboard" class="view-panel">
+      <div class="page-head" style="margin-bottom: 18px;">
+        <div>
+          <button class="btn btn-ghost btn-sm" style="margin-bottom: 8px;" onclick="navigate('directory')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Directory
+          </button>
+          <div class="dash-head-left">
+            <h1 class="dash-title" id="dashDogName">--</h1>
+            <span class="conn-status" id="dashConnBadge">
+              <span class="conn-dot"></span>
+              <span id="dashConnLabel">Standby</span>
+            </span>
+          </div>
+          <p id="dashSub">Collar Telemetry Console</p>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" onclick="openEditFromDash()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            Edit Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Hardware Sync Toolbar -->
+      <div class="hardware-bar">
+        <div class="hw-left">
+          <div class="hw-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+          </div>
+          <div>
+            <div class="hw-info">Hardware Sync</div>
+            <div class="hw-sub" id="hwNotice">Direct Wi-Fi / Hotspot link to ESP32 collar</div>
+          </div>
+        </div>
+        <div class="hw-right">
+          <input type="text" id="hwIpInput" class="hw-input" value="192.168.4.1" placeholder="Collar IP">
+          <button class="btn btn-secondary btn-sm" id="hwConnectBtn" onclick="toggleHardware()">Connect</button>
+        </div>
+      </div>
+
+      <!-- Metric Cards Grid -->
+      <div class="metric-grid">
+        <!-- Temp -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Temperature</span>
+            <div class="metric-badge-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="valTemp">--</div>
+          <div class="metric-sub">
+            <span>MAX30205 Probe</span>
+            <span id="tempStateBadge" class="badge" style="display:none;"></span>
+          </div>
+        </div>
+
+        <!-- Battery -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Battery Level</span>
+            <div class="metric-badge-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"></rect><line x1="23" y1="11" x2="23" y2="13"></line></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="valBatt">--%</div>
+          <div class="gauge-track">
+            <div id="battBar" class="gauge-fill"></div>
+          </div>
+          <div class="metric-sub">
+            <span>1200mAh LiPo</span>
+            <span id="battVolt">3.7V nominal</span>
+          </div>
+        </div>
+
+        <!-- GPS Location -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Position</span>
+            <div class="metric-badge-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+            </div>
+          </div>
+          <div class="metric-value num" id="valGps" style="font-size: 16px; padding-top: 5px;">--, --</div>
+          <div class="metric-sub">
+            <span>GP-02 Satellite</span>
+            <a id="mapsLink" href="#" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600; display: none;">View Map ↗</a>
+          </div>
+        </div>
+
+        <!-- Camera -->
+        <div class="metric-card" onclick="openCameraModal()" style="cursor: pointer;" title="Open camera viewer">
+          <div class="metric-header">
+            <span class="metric-label">Collar Camera</span>
+            <div class="metric-badge-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="valCam" style="font-size: 17px; padding-top: 5px;">Standby</div>
+          <div class="metric-sub">
+            <span>ESP32-CAM OV2640</span>
+            <span style="color: var(--accent); font-weight: 600;">Snapshot →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Waveform Chart Card -->
+      <div class="card chart-card">
+        <div class="chart-head">
+          <div>
+            <h3 class="chart-title">Body Temperature Trajectory</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Continuous clinical telemetry stream (Normal canine baseline: 38.0°C – 39.2°C)</p>
+          </div>
+          <div class="segmented" style="width: auto;">
+            <button class="segmented-btn active" id="simToggleBtn" onclick="toggleSimulation()">Simulation</button>
+          </div>
+        </div>
+
+        <div class="chart-canvas-wrap">
+          <canvas id="tempChart"></canvas>
+        </div>
+
+        <div class="toolbar-row">
+          <div class="toolbar-left">
+            <button class="btn btn-secondary btn-sm" onclick="logManualReading()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Log Sample
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="acknowledgeAlerts()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+              Acknowledge
+            </button>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn btn-danger btn-sm" onclick="triggerSOS()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              Emergency SOS
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Incident Alerts & Log Table -->
+      <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+        <!-- Alerts -->
+        <div class="card alert-panel">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 14px; font-weight: 700;">Incident Notifications</h3>
+            <span id="alertCountBadge" class="info-pill">0 Events</span>
+          </div>
+          <ul class="alert-list" id="alertList">
+            <li class="alert-row" style="color: var(--text-soft); justify-content: center;">No active incidents flagged.</li>
+          </ul>
+        </div>
+
+        <!-- Telemetry History -->
+        <div class="card">
+          <div class="telemetry-table-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="font-size: 14px; font-weight: 700;">Telemetry Audit Trail</h3>
+              <p style="font-size: 12px; color: var(--text-muted);">Indexed time-series database readings</p>
+            </div>
+            <div class="telemetry-controls-group" style="display: flex; align-items: center; gap: 8px;">
+              <div class="segmented" id="rangeFilterGroup">
+                <button class="segmented-btn" data-r="1" onclick="changeRange(1)">1h</button>
+                <button class="segmented-btn" data-r="6" onclick="changeRange(6)">6h</button>
+                <button class="segmented-btn active" data-r="24" onclick="changeRange(24)">24h</button>
+                <button class="segmented-btn" data-r="0" onclick="changeRange(0)">All</button>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                CSV
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Body Temp</th>
+                  <th>Battery</th>
+                  <th>Coordinates</th>
+                  <th>Incident Flag</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr><td colspan="5" style="text-align: center; color: var(--text-soft); padding: 18px;">No records found</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================== CAMERA SNAPSHOT MODAL ======================== -->
+  <div class="modal-overlay" id="cameraModal" onclick="handleModalOverlayClick(event)">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Collar Camera Feed</h3>
+        <button class="btn btn-ghost btn-sm" onclick="closeCameraModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="camera-frame" id="cameraFrame">
+          <div id="camFramePlaceholder">No snapshot captured yet</div>
+          <img id="camSnapshotImg" style="display: none;" alt="Snapshot">
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 12px; color: var(--text-muted);" id="camStatusMsg">ESP32-CAM OV2640 Module</span>
+          <button class="btn btn-primary btn-sm" id="captureBtn" onclick="takeSnapshot()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19 4h-3.5L14 2H10L8.5 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path></svg>
+            Trigger Snapshot
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======================== APPLICATION LOGIC ======================== -->
+  <script>
+    /* Global Application State */
+    let dogsList = [];
+    let currentDog = null;
+    let editingDogId = null;
+    let currentRange = 24;
+
+    let hwConnected = false;
+    let hwIP = localStorage.getItem('pawtrack_hw_ip') || '192.168.4.1';
+    let hwPollTimer = null;
+
+    let simActive = false;
+    let simTimer = null;
+
+    let telemetryHistory = [];
+    let chartSamples = [];
+    let incidents = [];
+
+    // Current vitals
+    let curTemp = 38.6;
+    let curBatt = 85;
+    let curLat = 28.4595;
+    let curLng = 77.0266;
+
+    /* Base API caller */
+    async function api(path, options = {}) {
+      const res = await fetch(path, options);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+      return res.json();
+    }
+
+    /* Screen Navigation */
+    function navigate(screenName) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      const activeEl = document.getElementById({
+        'directory': 'viewDirectory',
+        'form': 'viewForm',
+        'dashboard': 'viewDashboard'
+      }[screenName]);
+      if (activeEl) activeEl.classList.add('active');
+
+      if (screenName === 'directory') {
+        loadDogs();
+        stopHardwarePoll();
+        stopSimulation();
+      }
+    }
+
+    /* Load Dogs from Database */
+    async function loadDogs() {
+      try {
+        dogsList = await api('/api/dogs');
+        renderDirectory();
+      } catch (err) {
+        console.error('Failed to load dogs:', err);
+        document.getElementById('directorySubtitle').textContent = 'Error connecting to database';
+      }
+    }
+
+    /* Render Directory Cards */
+    function renderDirectory() {
+      const count = dogsList.length;
+      document.getElementById('directorySubtitle').textContent = `${count} ${count === 1 ? 'dog' : 'dogs'} in database`;
+
+      const grid = document.getElementById('dogGrid');
+      const empty = document.getElementById('emptyState');
+
+      if (count === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      grid.style.display = 'grid';
+      empty.style.display = 'none';
+
+      const statusBadges = {
+        'On the street': 'badge-street',
+        'Adopted': 'badge-adopted',
+        'In shelter': 'badge-shelter',
+        'Missing': 'badge-missing'
+      };
+
+      grid.innerHTML = dogsList.map(d => {
+        const photoHtml = d.photo 
+          ? `<img src="${d.photo}" alt="${esc(d.name)}">`
+          : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="2"></circle><line x1="15" y1="8" x2="17" y2="8"></line><line x1="15" y1="12" x2="17" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>`;
+
+        const badgeClass = statusBadges[d.status] || 'badge-street';
+
+        return `
+          <div class="dog-card" onclick="openDashboard(${d.id})">
+            <div class="dog-card-header">
+              <div class="dog-avatar">${photoHtml}</div>
+              <div class="dog-meta">
+                <h3>${esc(d.name)}</h3>
+                <p>${esc(d.breed || 'Indie / Pariah')}${d.age ? ' · ' + d.age + ' yrs' : ''}</p>
+              </div>
+            </div>
+
+            <div class="dog-pills">
+              <span class="badge ${badgeClass}"><span class="badge-dot"></span>${esc(d.status)}</span>
+              ${d.sterilized === 'yes' ? '<span class="info-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>ABC Sterilized</span>' : ''}
+              ${d.vaccinated === 'yes' ? '<span class="info-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>Rabies Vax</span>' : ''}
+              ${d.area ? `<span class="info-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>${esc(d.area)}</span>` : ''}
+            </div>
+
+            <div class="dog-card-footer">
+              <span class="collar-ref">${esc(d.collar_id || 'COLLAR-01')}</span>
+              <span style="font-size: 13px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 4px;">
+                Monitor Telemetry
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* Open Add Dog Form */
+    function openCreateForm() {
+      editingDogId = null;
+      document.getElementById('formHeading').textContent = 'Register Dog';
+      document.getElementById('saveBtn').textContent = 'Save Record';
+      document.getElementById('deleteBlock').style.display = 'none';
+      document.getElementById('dogForm').reset();
+      document.getElementById('photoPreviewWrap').innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>`;
+      setSegment('segSter', 'unknown');
+      setSegment('segVax', 'unknown');
+      navigate('form');
+    }
+
+    /* Open Edit Dog Form */
+    function openEditFromDash() {
+      if (!currentDog) return;
+      editingDogId = currentDog.id;
+      document.getElementById('formHeading').textContent = `Edit ${currentDog.name}`;
+      document.getElementById('saveBtn').textContent = 'Update Profile';
+      document.getElementById('deleteBlock').style.display = 'block';
+
+      document.getElementById('fName').value = currentDog.name || '';
+      document.getElementById('fBreed').value = currentDog.breed || '';
+      document.getElementById('fCollar').value = currentDog.collar_id || '';
+      document.getElementById('fAge').value = currentDog.age !== null ? currentDog.age : '';
+      document.getElementById('fWeight').value = currentDog.weight !== null ? currentDog.weight : '';
+      document.getElementById('fMarks').value = currentDog.marks || '';
+      document.getElementById('fArea').value = currentDog.area || '';
+      document.getElementById('fTemp').value = currentDog.temperament || 'Friendly';
+      document.getElementById('fStatus').value = currentDog.status || 'On the street';
+
+      setSegment('segSter', currentDog.sterilized || 'unknown');
+      setSegment('segVax', currentDog.vaccinated || 'unknown');
+
+      if (currentDog.photo) {
+        document.getElementById('photoPreviewWrap').innerHTML = `<img src="${currentDog.photo}" alt="Preview">`;
+      } else {
+        document.getElementById('photoPreviewWrap').innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>`;
+      }
+
+      navigate('form');
+    }
+
+    /* Segmented Controls Helper */
+    function setSegment(groupId, val) {
+      const group = document.getElementById(groupId);
+      group.querySelectorAll('.segmented-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.v === val);
+      });
+      group.dataset.selected = val;
+    }
+
+    function getSegment(groupId) {
+      return document.getElementById(groupId).dataset.selected || 'unknown';
+    }
+
+    /* Photo Preview Handler */
+    function previewPhoto(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById('photoPreviewWrap').innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    /* Submit Form */
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('fName').value.trim();
+      if (!name) return;
+
+      const fd = new FormData();
+      fd.append('name', name);
+      fd.append('breed', document.getElementById('fBreed').value.trim());
+      fd.append('collar_id', document.getElementById('fCollar').value.trim());
+      fd.append('age', document.getElementById('fAge').value);
+      fd.append('weight', document.getElementById('fWeight').value);
+      fd.append('marks', document.getElementById('fMarks').value.trim());
+      fd.append('area', document.getElementById('fArea').value.trim());
+      fd.append('temperament', document.getElementById('fTemp').value);
+      fd.append('status', document.getElementById('fStatus').value);
+      fd.append('sterilized', getSegment('segSter'));
+      fd.append('vaccinated', getSegment('segVax'));
+
+      const fileInput = document.getElementById('photoInput');
+      if (fileInput.files && fileInput.files[0]) {
+        fd.append('photo', fileInput.files[0]);
+      }
+
+      try {
+        if (editingDogId) {
+          await api(`/api/dogs/${editingDogId}`, { method: 'PUT', body: fd });
+        } else {
+          await api('/api/dogs', { method: 'POST', body: fd });
+        }
+        await loadDogs();
+        navigate('directory');
+      } catch (err) {
+        alert('Failed to save profile: ' + err.message);
+      }
+    }
+
+    /* Delete Dog */
+    async function handleDelete() {
+      if (!editingDogId) return;
+      if (!confirm(`Are you sure you want to delete this dog profile and all associated telemetry records?`)) return;
+      try {
+        await api(`/api/dogs/${editingDogId}`, { method: 'DELETE' });
+        await loadDogs();
+        navigate('directory');
+      } catch (err) {
+        alert('Failed to delete dog: ' + err.message);
+      }
+    }
+
+    /* Open Dashboard */
+    async function openDashboard(dogId) {
+      try {
+        currentDog = await api(`/api/dogs/${dogId}`);
+        document.getElementById('dashDogName').textContent = currentDog.name;
+        document.getElementById('dashSub').textContent = `Collar ${currentDog.collar_id || 'COLLAR-01'} · ${currentDog.breed || 'Indie'}`;
+        document.getElementById('hwIpInput').value = hwIP;
+
+        chartSamples = [];
+        incidents = [];
+        updateIncidentsUI();
+        navigate('dashboard');
+
+        // Load historical telemetry
+        await fetchTelemetry(currentRange);
+        requestAnimationFrame(() => renderChart());
+
+        // Start simulation by default if hardware is offline
+        if (!hwConnected) {
+          startSimulation();
+        }
+      } catch (err) {
+        alert('Could not open dog dashboard: ' + err.message);
+      }
+    }
+
+    /* Fetch Telemetry from Backend */
+    async function fetchTelemetry(range = 24) {
+      if (!currentDog) return;
+      currentRange = range;
+      try {
+        telemetryHistory = await api(`/api/dogs/${currentDog.id}/readings?range=${range}`);
+        renderHistoryTable();
+
+        if (telemetryHistory.length > 0) {
+          const latest = telemetryHistory[0];
+          if (latest.temp) curTemp = Number(latest.temp);
+          if (latest.batt) curBatt = Number(latest.batt);
+          if (latest.lat && latest.lng) {
+            curLat = Number(latest.lat);
+            curLng = Number(latest.lng);
+          }
+          // Seed chart with recent samples
+          chartSamples = telemetryHistory.slice(0, 40).map(r => r.temp).reverse();
+        }
+        updateMetricDisplays();
+        renderChart();
+      } catch (err) {
+        console.error('Failed to load telemetry history:', err);
+      }
+    }
+
+    /* Update Metric Cards */
+    function updateMetricDisplays() {
+      document.getElementById('valTemp').textContent = `${curTemp.toFixed(1)}°C`;
+      document.getElementById('valBatt').textContent = `${Math.round(curBatt)}%`;
+      document.getElementById('valGps').textContent = `${curLat.toFixed(4)}, ${curLng.toFixed(4)}`;
+
+      // Map link
+      const mapA = document.getElementById('mapsLink');
+      mapA.href = `https://www.google.com/maps?q=${curLat},${curLng}`;
+      mapA.style.display = 'inline';
+
+      // Battery bar
+      const bar = document.getElementById('battBar');
+      bar.style.width = `${Math.min(100, Math.max(0, curBatt))}%`;
+      if (curBatt > 50) bar.style.background = 'var(--emerald)';
+      else if (curBatt > 15) bar.style.background = 'var(--amber)';
+      else bar.style.background = 'var(--rose)';
+
+      // Temp state badge
+      const tBadge = document.getElementById('tempStateBadge');
+      if (curTemp > 39.5) {
+        tBadge.textContent = 'High Fever';
+        tBadge.className = 'badge badge-missing';
+        tBadge.style.display = 'inline-flex';
+      } else if (curTemp < 37.0) {
+        tBadge.textContent = 'Low Temp';
+        tBadge.className = 'badge badge-street';
+        tBadge.style.display = 'inline-flex';
+      } else {
+        tBadge.textContent = 'Nominal';
+        tBadge.className = 'badge badge-adopted';
+        tBadge.style.display = 'inline-flex';
+      }
+    }
+
+    /* Render Telemetry History Table */
+    function renderHistoryTable() {
+      const tbody = document.getElementById('historyTableBody');
+      if (!telemetryHistory || telemetryHistory.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-soft); padding: 18px;">No records logged in selected window</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = telemetryHistory.map(r => {
+        const dateStr = new Date(r.ts).toLocaleString(undefined, {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+        const alertHtml = r.alert 
+          ? `<span class="badge badge-missing"><span class="badge-dot"></span>${esc(r.alert)}</span>` 
+          : `<span style="color: var(--text-soft);">--</span>`;
+
+        return `
+          <tr>
+            <td class="num" style="color: var(--text-muted);">${dateStr}</td>
+            <td class="num" style="font-weight: 600;">${r.temp != null ? r.temp + '°C' : '--'}</td>
+            <td class="num">${r.batt != null ? r.batt + '%' : '--'}</td>
+            <td class="num" style="font-size: 11.5px; color: var(--text-muted);">${r.lat && r.lng ? r.lat + ', ' + r.lng : '--'}</td>
+            <td>${alertHtml}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /* Change Range Filter */
+    function changeRange(hours) {
+      document.querySelectorAll('#rangeFilterGroup .segmented-btn').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.r) === hours);
+      });
+      fetchTelemetry(hours);
+    }
+
+    /* CSV Export */
+    function exportCSV() {
+      if (!currentDog) return;
+      window.location.href = `/api/dogs/${currentDog.id}/readings/export?range=${currentRange}`;
+    }
+
+    /* Hardware Collar Polling */
+    async function toggleHardware() {
+      if (hwConnected) {
+        stopHardwarePoll();
+        return;
+      }
+
+      const ip = document.getElementById('hwIpInput').value.trim();
+      if (!ip) return;
+      hwIP = ip;
+      localStorage.setItem('pawtrack_hw_ip', ip);
+
+      document.getElementById('hwConnectBtn').textContent = 'Connecting...';
+      try {
+        let res = await fetch(`http://${ip}/api/telemetry`, { signal: AbortSignal.timeout(3000) }).catch(() => null);
+        if (!res || !res.ok) {
+          res = await fetch(`http://${ip}/data`, { signal: AbortSignal.timeout(3000) });
+        }
+        if (!res.ok) throw new Error('Response code ' + res.status);
+
+        hwConnected = true;
+        stopSimulation();
+
+        document.getElementById('hwConnectBtn').textContent = 'Disconnect';
+        document.getElementById('hwConnectBtn').className = 'btn btn-danger btn-sm';
+        document.getElementById('dashConnBadge').className = 'conn-status live';
+        document.getElementById('dashConnLabel').textContent = `Live (${ip})`;
+        document.getElementById('hwNotice').textContent = 'Telemetry linked directly to ESP32 collar';
+
+        hwPollTimer = setInterval(pollHardware, 2000);
+        pollHardware();
+      } catch (err) {
+        document.getElementById('hwConnectBtn').textContent = 'Connect';
+        document.getElementById('hwConnectBtn').className = 'btn btn-secondary btn-sm';
+        alert(`Could not connect to collar at http://${ip}.\n\nPlease ensure your computer/phone is on Wi-Fi 'Pawtrack-Collar-01' or the same router network.`);
+      }
+    }
+
+    async function pollHardware() {
+      if (!hwConnected || !currentDog) return;
+      try {
+        let res = await fetch(`http://${hwIP}/api/telemetry`, { signal: AbortSignal.timeout(2500) }).catch(() => null);
+        if (!res || !res.ok) {
+          res = await fetch(`http://${hwIP}/data`, { signal: AbortSignal.timeout(2500) });
+        }
+        const data = await res.json();
+        
+        curTemp = Number(data.temp);
+        curBatt = Number(data.batt);
+        if (data.lat && data.lng) {
+          curLat = Number(data.lat);
+          curLng = Number(data.lng);
+        }
+
+        chartSamples.push(curTemp);
+        if (chartSamples.length > 50) chartSamples.shift();
+
+        updateMetricDisplays();
+        renderChart();
+
+        // Check alerts
+        const alertMsg = data.alert || evalVitalsAlert(curTemp, curBatt);
+        if (alertMsg) addIncident(alertMsg, 'danger');
+
+        // Log reading to database
+        await api(`/api/dogs/${currentDog.id}/readings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ temp: curTemp, batt: curBatt, lat: curLat, lng: curLng, alert: alertMsg })
+        });
+      } catch (e) {
+        document.getElementById('dashConnLabel').textContent = 'Reconnecting...';
+      }
+    }
+
+    function stopHardwarePoll() {
+      hwConnected = false;
+      if (hwPollTimer) { clearInterval(hwPollTimer); hwPollTimer = null; }
+      document.getElementById('hwConnectBtn').textContent = 'Connect';
+      document.getElementById('hwConnectBtn').className = 'btn btn-secondary btn-sm';
+      document.getElementById('dashConnBadge').className = 'conn-status';
+      document.getElementById('dashConnLabel').textContent = 'Standby';
+      document.getElementById('hwNotice').textContent = 'Direct Wi-Fi / Hotspot link to ESP32 collar';
+    }
+
+    /* Simulation Engine */
+    function toggleSimulation() {
+      if (simActive) stopSimulation();
+      else startSimulation();
+    }
+
+    function startSimulation() {
+      stopHardwarePoll();
+      simActive = true;
+      document.getElementById('simToggleBtn').classList.add('active');
+      document.getElementById('dashConnBadge').className = 'conn-status sim';
+      document.getElementById('dashConnLabel').textContent = 'Simulation Active';
+
+      if (simTimer) clearInterval(simTimer);
+      simTimer = setInterval(simulationTick, 4000);
+      simulationTick();
+    }
+
+    function stopSimulation() {
+      simActive = false;
+      if (simTimer) { clearInterval(simTimer); simTimer = null; }
+      document.getElementById('simToggleBtn').classList.remove('active');
+      if (!hwConnected) {
+        document.getElementById('dashConnBadge').className = 'conn-status';
+        document.getElementById('dashConnLabel').textContent = 'Standby';
+      }
+    }
+
+    async function simulationTick() {
+      if (!simActive || !currentDog) return;
+      curTemp += (Math.random() - 0.5) * 0.08;
+      curTemp = Math.max(36.8, Math.min(40.8, curTemp));
+      curBatt = Math.max(8, curBatt - 0.02);
+      curLat += (Math.random() - 0.5) * 0.0002;
+      curLng += (Math.random() - 0.5) * 0.0002;
+
+      chartSamples.push(curTemp);
+      if (chartSamples.length > 50) chartSamples.shift();
+
+      updateMetricDisplays();
+      renderChart();
+
+      const alertMsg = evalVitalsAlert(curTemp, curBatt);
+      if (alertMsg) addIncident(alertMsg, 'danger');
+
+      // Log to DB periodically
+      try {
+        await api(`/api/dogs/${currentDog.id}/readings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            temp: +curTemp.toFixed(1),
+            batt: Math.round(curBatt),
+            lat: +curLat.toFixed(5),
+            lng: +curLng.toFixed(5),
+            alert: alertMsg
+          })
+        });
+      } catch (err) {}
+    }
+
+    function evalVitalsAlert(t, b) {
+      if (t > 39.5) return 'Critical Hyperthermia (> 39.5°C)';
+      if (t < 37.0) return 'Hypothermia Warning (< 37.0°C)';
+      if (b < 15) return 'Low Battery (< 15%)';
+      return '';
+    }
+
+    /* Manual Actions */
+    async function logManualReading() {
+      if (!currentDog) return;
+      const alertMsg = evalVitalsAlert(curTemp, curBatt);
+      try {
+        await api(`/api/dogs/${currentDog.id}/readings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            temp: +curTemp.toFixed(1),
+            batt: Math.round(curBatt),
+            lat: +curLat.toFixed(5),
+            lng: +curLng.toFixed(5),
+            alert: alertMsg
+          })
+        });
+        addIncident('Manual Reading Logged', 'nominal');
+        await fetchTelemetry(currentRange);
+      } catch (e) {
+        alert('Failed to log reading: ' + e.message);
+      }
+    }
+
+    async function triggerSOS() {
+      if (!currentDog) return;
+      addIncident('Emergency SOS Beacon Triggered', 'danger');
+      if (hwConnected) {
+        fetch(`http://${hwIP}/api/sos`, { method: 'POST' }).catch(() => {});
+      }
+      try {
+        await api(`/api/dogs/${currentDog.id}/sos`, {});
+        await fetchTelemetry(currentRange);
+      } catch (e) {}
+    }
+
+    /* Incidents List */
+    function addIncident(msg, type = 'danger') {
+      incidents.unshift({ msg, type, ts: new Date() });
+      if (incidents.length > 20) incidents.pop();
+      updateIncidentsUI();
+    }
+
+    function acknowledgeAlerts() {
+      incidents = [];
+      updateIncidentsUI();
+    }
+
+    function updateIncidentsUI() {
+      const list = document.getElementById('alertList');
+      const badge = document.getElementById('alertCountBadge');
+      badge.textContent = `${incidents.length} Events`;
+
+      if (incidents.length === 0) {
+        list.innerHTML = `<li class="alert-row" style="color: var(--text-soft); justify-content: center;">No active incidents flagged.</li>`;
+        return;
+      }
+
+      list.innerHTML = incidents.map(item => {
+        const dotColor = item.type === 'danger' ? 'var(--rose)' : item.type === 'warning' ? 'var(--amber)' : 'var(--emerald)';
+        const timeStr = item.ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        return `
+          <li class="alert-row">
+            <div class="alert-left">
+              <span class="alert-tag-dot" style="background: ${dotColor};"></span>
+              <span style="font-weight: 600;">${esc(item.msg)}</span>
+            </div>
+            <span class="alert-time">${timeStr}</span>
+          </li>
+        `;
+      }).join('');
+    }
+
+    /* Canvas Trajectory Chart (Retina Render) */
+    function renderChart() {
+      const canvas = document.getElementById('tempChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight || 160;
+      if (w <= 0) return;
+
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+
+      if (chartSamples.length < 2) {
+        ctx.fillStyle = '#94A3B8';
+        ctx.font = '12px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Awaiting sensor samples…', w / 2, h / 2);
+        return;
+      }
+
+      const pad = { top: 20, right: 16, bottom: 24, left: 44 };
+      const plotW = w - pad.left - pad.right;
+      const plotH = h - pad.top - pad.bottom;
+
+      const minV = 36.5;
+      const maxV = 41.0;
+      const range = maxV - minV;
+
+      // Subtle Grid & Ticks
+      ctx.strokeStyle = '#F1F5F9';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+
+      for (let i = 0; i <= 3; i++) {
+        const val = minV + (range / 3) * (3 - i);
+        const y = pad.top + (plotH / 3) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+        ctx.fillText(val.toFixed(1) + '°', pad.left - 8, y + 3.5);
+      }
+
+      // Smooth Stroke
+      ctx.beginPath();
+      chartSamples.forEach((val, i) => {
+        const x = pad.left + (i / (chartSamples.length - 1)) * plotW;
+        const clampedVal = Math.max(minV, Math.min(maxV, val));
+        const y = pad.top + plotH - ((clampedVal - minV) / range) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+
+      ctx.strokeStyle = '#2563EB';
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      // Soft Area Gradient
+      const grad = ctx.createLinearGradient(0, pad.top, 0, h - pad.bottom);
+      grad.addColorStop(0, 'rgba(37, 99, 235, 0.12)');
+      grad.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+
+      ctx.lineTo(pad.left + plotW, h - pad.bottom);
+      ctx.lineTo(pad.left, h - pad.bottom);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Current Value Point
+      const lastVal = chartSamples[chartSamples.length - 1];
+      const lastX = pad.left + plotW;
+      const lastY = pad.top + plotH - ((Math.max(minV, Math.min(maxV, lastVal)) - minV) / range) * plotH;
+
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#2563EB';
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    /* Camera Modal Controls */
+    function openCameraModal() {
+      document.getElementById('cameraModal').classList.add('open');
+    }
+
+    function closeCameraModal() {
+      document.getElementById('cameraModal').classList.remove('open');
+    }
+
+    function handleModalOverlayClick(e) {
+      if (e.target === document.getElementById('cameraModal')) closeCameraModal();
+    }
+
+    async function takeSnapshot() {
+      const msg = document.getElementById('camStatusMsg');
+      const img = document.getElementById('camSnapshotImg');
+      const placeholder = document.getElementById('camFramePlaceholder');
+      const btn = document.getElementById('captureBtn');
+
+      if (!hwConnected) {
+        msg.textContent = 'Hardware collar offline. Connect collar over Wi-Fi first.';
+        return;
+      }
+
+      btn.disabled = true;
+      msg.textContent = 'Transmitting snapshot from OV2640...';
+
+      try {
+        const res = await fetch(`http://${hwIP}/capture?t=${Date.now()}`, { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) throw new Error('Collar HTTP ' + res.status);
+        const blob = await res.blob();
+        img.src = URL.createObjectURL(blob);
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
+        msg.textContent = 'Snapshot captured successfully';
+        document.getElementById('valCam').textContent = 'Captured ✓';
+      } catch (err) {
+        msg.textContent = 'Capture failed: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    /* Helper: Escape HTML */
+    function esc(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /* Responsive Canvas Resize with Debouncing & ResizeObserver */
+    let chartResizeTimeout = null;
+    function triggerChartResize() {
+      if (document.getElementById('viewDashboard').classList.contains('active')) {
+        clearTimeout(chartResizeTimeout);
+        chartResizeTimeout = setTimeout(() => renderChart(), 60);
+      }
+    }
+    window.addEventListener('resize', triggerChartResize);
+    window.addEventListener('orientationchange', triggerChartResize);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDogs();
+      const canvasWrap = document.querySelector('.chart-canvas-wrap');
+      if (canvasWrap && window.ResizeObserver) {
+        new ResizeObserver(() => triggerChartResize()).observe(canvasWrap);
+      }
+    });
+  </script>
+</body>
+</html>

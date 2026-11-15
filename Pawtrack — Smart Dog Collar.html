@@ -1,0 +1,436 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pawtrack — Smart Dog Collar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3fb;--bg2:#e3edfb;--card:rgba(255,255,255,.72);--cardsolid:#fff;--ink:#17283b;--mut:#64809a;--line:rgba(140,180,220,.35);
+--accent:#4f7cf0;--accent2:#7fb8ff;--ok:#2fbf8f;--warn:#f0ad4e;--bad:#ef5f6e;--glow:0 10px 30px -8px rgba(79,124,240,.35);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-t="light"]){--bg:#0b1420;--bg2:#101a2b;--card:rgba(23,35,53,.65);--cardsolid:#17233a;--ink:#eaf2fd;--mut:#8ea3bd;--line:rgba(100,140,190,.25);--glow:0 10px 34px -8px rgba(79,124,240,.45);color-scheme:dark}}
+:root[data-t="dark"]{--bg:#0b1420;--bg2:#101a2b;--card:rgba(23,35,53,.65);--cardsolid:#17233a;--ink:#eaf2fd;--mut:#8ea3bd;--line:rgba(100,140,190,.25);--glow:0 10px 34px -8px rgba(79,124,240,.45);color-scheme:dark}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;color:var(--ink);font:15px/1.55 Inter,Nunito,sans-serif;padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0);
+  background:radial-gradient(circle at 15% 8%,var(--bg2),transparent 55%),radial-gradient(circle at 90% 85%,rgba(127,184,255,.35),transparent 50%),var(--bg);min-height:100%}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.scr{display:none;min-height:100vh;padding:28px 18px 60px}.scr.on{display:flex;flex-direction:column;align-items:center;animation:fadeUp .4s ease}
+.wrap{width:100%;max-width:480px}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:18px;justify-content:center}
+.logo span{font-size:27px;font-weight:900;letter-spacing:-.02em}
+.themeBtn{position:fixed;top:calc(14px + env(safe-area-inset-top,0));right:14px;z-index:9;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;box-shadow:var(--glow)}
+.card{background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--glow)}
+h1{font-size:21px;margin:0 0 4px;font-weight:800;letter-spacing:-.01em}h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:0 0 10px;font-weight:800}
+p.sub{color:var(--mut);margin:0 0 18px;font-size:14px}
+label{display:block;font-weight:800;font-size:12px;color:var(--mut);margin:14px 0 6px;letter-spacing:.02em}
+input,select,textarea{width:100%;font:inherit;border:1.5px solid var(--line);background:rgba(255,255,255,.5);color:var(--ink);border-radius:14px;padding:11px 14px;transition:border-color .15s,box-shadow .15s}
+:root[data-t="dark"] input,:root[data-t="dark"] select,:root[data-t="dark"] textarea{background:rgba(255,255,255,.04)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(79,124,240,.15)}
+textarea{min-height:60px;resize:vertical}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.choice label{display:flex;flex-direction:column;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:18px;padding:20px 8px;cursor:pointer;margin:0;color:var(--ink);background:rgba(255,255,255,.3);transition:all .15s}
+.choice label.sel{border-color:var(--accent);background:rgba(79,124,240,.12);color:var(--accent);box-shadow:var(--glow)}
+.choice input{display:none}.choice .ic{font-size:28px}
+button{font:inherit;font-weight:800;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:16px;padding:13px 18px;cursor:pointer;width:100%;margin-top:16px;box-shadow:0 8px 20px -6px rgba(79,124,240,.5);transition:transform .12s,box-shadow .12s;letter-spacing:.01em}
+button:hover{transform:translateY(-1px);box-shadow:0 10px 24px -6px rgba(79,124,240,.6)}button:active{transform:scale(.97)}
+button.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent);box-shadow:none}
+button.sm{width:auto;padding:8px 14px;font-size:13px;margin:0;border-radius:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.yn{display:flex;gap:8px;margin-top:5px}.yn button{flex:1;margin:0;background:rgba(255,255,255,.4);color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.yn button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:var(--accent)}
+.err{color:var(--bad);font-size:12.5px;margin-top:6px;display:none}
+.photo{display:flex;align-items:center;gap:12px}
+.ph{width:60px;height:60px;border-radius:16px;background:rgba(79,124,240,.1);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:26px;object-fit:cover}
+.dogcard{display:flex;gap:12px;align-items:center;background:var(--card);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:20px;padding:13px;margin-bottom:10px;box-shadow:0 6px 18px -8px rgba(79,124,240,.25);transition:transform .15s,box-shadow .15s}
+.dogcard:hover{transform:translateY(-2px);box-shadow:var(--glow)}
+.dogcard img,.dogcard .ph{width:52px;height:52px}
+.status{font-size:11px;font-weight:800;padding:3px 11px;border-radius:20px;color:#fff;display:inline-block;margin-top:3px}
+.fab{position:fixed;right:20px;bottom:calc(22px + env(safe-area-inset-bottom,0));width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 28px -6px rgba(79,124,240,.55);cursor:pointer;margin:0;border:none;transition:transform .15s}
+.fab:hover{transform:scale(1.07)}
+.topline{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;width:100%}
+.linkbtn{background:none;border:none;color:var(--accent);font-weight:800;width:auto;margin:0;padding:4px;box-shadow:none}
+.grid4{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));width:100%}
+.chip{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:8px;color:#fff;box-shadow:0 4px 10px -2px rgba(0,0,0,.25)}
+.big{font-size:23px;font-weight:900;letter-spacing:-.01em}.muted{color:var(--mut)}
+canvas{width:100%;display:block}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mut);position:sticky;top:0;background:var(--cardsolid)}
+.tw{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:14px;margin-top:8px}
+.pill{display:inline-flex;gap:6px;padding:4px 12px;border-radius:20px;background:var(--card);border:1px solid var(--line);font-size:12px;color:var(--mut);align-items:center;backdrop-filter:blur(8px)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(47,191,143,.2)}.dot.off{background:var(--bad);box-shadow:0 0 0 3px rgba(239,95,110,.2)}
+.alertlist{list-style:none;margin:0;padding:0;max-height:160px;overflow-y:auto}.alertlist li{padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.hide{display:none!important}
+.paw{font-size:38px;filter:drop-shadow(0 4px 10px rgba(79,124,240,.35))}
+</style></head><body>
+<button class="themeBtn" id="themeBtn" title="Toggle theme">🌙</button>
+<div id="app">
+
+<section class="scr on" data-s="mode"><div class="wrap">
+  <div class="logo"><span class="paw">🐾</span><span>Pawtrack</span></div>
+  <div class="card"><h1>Welcome!</h1><p class="sub">Is this for personal use, or for an organization / NGO?</p>
+    <div class="choice">
+      <label id="chP"><input type="radio" name="md" value="personal"><span class="ic">🙋</span>Personal use</label>
+      <label id="chO"><input type="radio" name="md" value="org"><span class="ic">🏢</span>Organization / NGO</label>
+    </div>
+    <div id="orgWrap" class="hide"><label>Organization / NGO name</label><input id="orgIn" placeholder="e.g. Paws & Care Trust"></div>
+    <div class="err" id="modeErr">Please choose one.</div>
+    <button id="modeGo">Continue →</button>
+  </div></div>
+</section>
+
+<section class="scr" data-s="login"><div class="wrap">
+  <div class="logo"><span class="paw">🐾</span><span>Pawtrack</span></div>
+  <div class="card"><h1>Log in</h1><p class="sub">Enter your phone number to continue — we'll remember your dogs on this device.</p>
+    <label>Phone number</label><input id="phoneIn" inputmode="tel" placeholder="10-digit mobile number" maxlength="15">
+    <div class="err" id="phoneErr">Please enter a valid phone number.</div>
+    <button id="phoneGo">Continue →</button>
+  </div></div>
+</section>
+
+<section class="scr" data-s="dogform"><div class="wrap">
+  <div class="topline"><h1 id="formTitle">Add a dog</h1><button class="linkbtn" id="formCancel">Cancel</button></div>
+  <div class="card">
+    <div class="photo"><div class="ph" id="photoPh">🐾</div><input type="file" accept="image/*" id="photoIn" style="width:auto"></div>
+    <label>Dog's name</label><input id="fName" placeholder="e.g. Sheru">
+    <label>Breed / type</label><input id="fBreed" list="breeds" placeholder="e.g. Indian pariah / mixed">
+    <datalist id="breeds"><option>Indian pariah / mixed</option><option>Labrador mix</option><option>German Shepherd mix</option></datalist>
+    <div class="row"><div style="flex:1"><label>Age (yrs)</label><input id="fAge" type="number" min="0" step="0.5"></div>
+      <div style="flex:1"><label>Weight (kg)</label><input id="fWeight" type="number" min="0" step="0.1"></div></div>
+    <label>Distinguishing marks</label><textarea id="fMarks" placeholder="e.g. brown, white patch on left ear, slight limp"></textarea>
+    <label>Sterilized (ABC programme)?</label>
+    <div class="yn"><button type="button" class="yb" data-f="ster" data-v="yes">Yes</button><button type="button" class="yb" data-f="ster" data-v="no">No</button><button type="button" class="yb on" data-f="ster" data-v="unknown">Unknown</button></div>
+    <label>Vaccinated (rabies)?</label>
+    <div class="yn"><button type="button" class="yb" data-f="vax" data-v="yes">Yes</button><button type="button" class="yb" data-f="vax" data-v="no">No</button><button type="button" class="yb on" data-f="vax" data-v="unknown">Unknown</button></div>
+    <div class="row"><div style="flex:1"><label>Temperament</label><select id="fTemp"><option>Friendly</option><option>Shy / cautious</option><option>Nervous</option><option>Can be aggressive</option><option>Unknown</option></select></div>
+      <div style="flex:1"><label>Status</label><select id="fStatus"><option>On the street</option><option>Adopted</option><option>In shelter</option><option>Missing</option></select></div></div>
+    <label>Area / landmark</label><input id="fArea" placeholder="e.g. Sector 62, behind Blue Gate dairy">
+    <label>Smart Collar ID</label><input id="fCollar" placeholder="COLLAR-01">
+    <div class="err" id="formErr">Please enter at least the dog's name.</div>
+    <button id="formSave">Save dog</button>
+  </div></div>
+</section>
+
+<section class="scr" data-s="doglist"><div class="wrap">
+  <div class="topline"><h1 id="dlTitle">My dogs</h1><button class="linkbtn" id="logoutBtn">Log out</button></div>
+  <p class="sub" id="dlSub"></p>
+  <div id="dogListBox"></div>
+  <p class="muted" style="font-size:12.5px">Tap <b>+</b> anytime you take in, buy or adopt another dog.</p>
+</div><button class="fab" id="fab">+</button></section>
+
+<section class="scr" data-s="dash"><div class="wrap" style="max-width:720px">
+  <div class="topline"><button class="linkbtn" id="backBtn">← My dogs</button><span class="pill"><span class="dot" id="cDot"></span><span id="cSeen">live</span></span></div>
+  <h1 id="dashName">Buddy</h1><p class="sub" id="dashSub">Collar —</p>
+
+  <!-- Hardware Connection Bar -->
+  <div class="card" style="margin-bottom:12px;padding:14px 18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:800;font-size:13px">Hardware:</span>
+        <span id="hwBadge" class="pill"><span class="dot off" id="hwDot"></span><span id="hwStatus">Simulation</span></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input id="hwIpIn" placeholder="Collar IP (e.g. 192.168.4.1)" style="width:190px;padding:7px 12px;font-size:12px;margin:0" value="192.168.4.1">
+        <button class="sm" id="hwConnectBtn">Connect</button>
+      </div>
+    </div>
+    <div id="hwInfoText" class="muted" style="font-size:11.5px;margin-top:6px">
+      Connect to collar Wi-Fi <b>Pawtrack-Collar-01</b> (Pass: <code>12345678</code>) or your local router IP.
+    </div>
+  </div>
+
+  <div class="grid4">
+    <div class="card"><div class="chip" style="background:linear-gradient(135deg,#ff9a62,#ff6f6f)">🌡️</div><h2>Temp</h2><div class="big" id="tV">—</div><small class="muted">MAX30205</small></div>
+    <div class="card"><div class="chip" style="background:linear-gradient(135deg,#2bd4a0,#2f8fd1)">🔋</div><h2>Battery</h2><div class="big" id="bV">—</div><small class="muted">1200mAh</small></div>
+    <div class="card"><div class="chip" style="background:linear-gradient(135deg,#4aa3e0,#2f6fd1)">📍</div><h2>GPS</h2><div style="font-size:13px" id="gV">—</div><small class="muted"><a id="gMapA" href="#" target="_blank" style="color:var(--accent);text-decoration:none">GP-02 (View Map ↗)</a></small></div>
+    <div class="card" id="camCard" style="cursor:pointer" title="Click to view camera snapshot"><div class="chip" style="background:linear-gradient(135deg,#9a6cff,#5c8aff)">📷</div><h2>Camera</h2><div class="big" id="camV" style="font-size:16px">—</div><small class="muted" id="camSub">ESP32-CAM (Tap to view)</small></div>
+  </div>
+
+  <!-- Camera Snapshot Modal / Viewer -->
+  <div id="camBox" class="card hide" style="margin-top:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h2 style="margin:0">Collar Camera (ESP32-CAM)</h2>
+      <button class="linkbtn" id="closeCamBtn">✕ Close</button>
+    </div>
+    <div style="background:rgba(0,0,0,0.15);border-radius:14px;overflow:hidden;min-height:160px;display:flex;align-items:center;justify-content:center;position:relative">
+      <img id="camImg" style="width:100%;max-height:320px;object-fit:contain;display:none;border-radius:14px">
+      <div id="camMsg" class="muted" style="padding:20px;text-align:center">No snapshot yet. Connect hardware or tap button below.</div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="sm" id="snapBtn">📸 Take Snapshot</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px"><h2>Temperature — recent</h2><canvas id="wave" height="130"></canvas>
+    <div class="row"><button class="sm" id="simBtn">Simulate live data</button><button class="sm" id="logBtn">Log reading now</button>
+    <button class="sm" id="sosBtn">🆘 SOS</button><button class="sm" id="ackBtn">Acknowledge</button></div></div>
+  <div class="card" style="margin-top:12px"><h2>Alerts</h2><ul class="alertlist" id="alertBox"><li class="muted">No alerts yet.</li></ul></div>
+  <div class="card" style="margin-top:12px"><h2>History</h2>
+    <div class="row"><button class="sm rb" data-r="1">1h</button><button class="sm rb" data-r="6">6h</button><button class="sm rb on" data-r="24">24h</button><button class="sm rb" data-r="0">All</button><button class="sm" id="csvBtn">⬇ CSV</button></div>
+    <div class="tw"><table><thead><tr><th>Time</th><th>°C</th><th>Batt</th><th>Lat</th><th>Lng</th><th>Alert</th></tr></thead><tbody id="histBody"></tbody></table></div>
+  </div>
+</div></section>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+let mode='personal',orgName='',account=null,dogs=[],editId=null,photoData=null,sterV='unknown',vaxV='unknown';
+let curDog=null,temp=38.6,batt=82,pos={x:0,y:0},sim=true,acked=false,sosUntil=0,range=24,readings=[];
+const BASE=[28.4595,77.0266];
+let hwConnected=false,hwIP=localStorage.getItem('pawtrack_hw_ip')||'192.168.4.1',hwPollTimer=null;
+let liveLat=BASE[0],liveLng=BASE[1];
+
+function go(s){document.querySelectorAll('.scr').forEach(e=>e.classList.toggle('on',e.dataset.s===s))}
+function sanitize(v){return (v||'').replace(/\D/g,'')}
+
+document.querySelectorAll('input[name=md]').forEach(r=>r.onchange=()=>{
+  document.querySelectorAll('.choice label').forEach(l=>l.classList.toggle('sel',l.querySelector('input').checked));
+  $('orgWrap').classList.toggle('hide',!$('chO').querySelector('input').checked);
+});
+$('modeGo').onclick=()=>{const sel=document.querySelector('input[name=md]:checked');if(!sel){$('modeErr').style.display='block';return}
+  $('modeErr').style.display='none';mode=sel.value;orgName=$('orgIn').value.trim();go('login')};
+
+$('phoneGo').onclick=()=>{
+  const phone=sanitize($('phoneIn').value);if(phone.length<7){$('phoneErr').style.display='block';return}
+  $('phoneErr').style.display='none';
+  const acc=LS.get('acct_'+phone,null);
+  if(acc){account=acc;dogs=LS.get('dogs_'+phone,[]);LS.set('lastPhone',phone);renderList();go('doglist');return}
+  account={phone,mode,orgName,createdAt:Date.now()};LS.set('acct_'+phone,account);LS.set('lastPhone',phone);dogs=[];openForm();
+};
+
+function openForm(existing){
+  editId=existing?existing.id:null;$('formTitle').textContent=existing?'Edit dog':'Add a dog';
+  $('fName').value=existing?.name||'';$('fBreed').value=existing?.breed||'';$('fAge').value=existing?.age||'';
+  $('fWeight').value=existing?.weight||'';$('fMarks').value=existing?.marks||'';$('fArea').value=existing?.area||'';
+  $('fCollar').value=existing?.collarId||('COLLAR-0'+(dogs.length+1));
+  $('fTemp').value=existing?.temperament||'Friendly';$('fStatus').value=existing?.status||'On the street';
+  sterV=existing?.sterilized||'unknown';vaxV=existing?.vaccinated||'unknown';setYN('ster',sterV);setYN('vax',vaxV);
+  photoData=existing?.photo||null;$('photoPh').innerHTML=photoData?'<img src="'+photoData+'" style="width:100%;height:100%;object-fit:cover;border-radius:14px">':'🐾';
+  $('photoIn').value='';$('formErr').style.display='none';go('dogform');
+}
+function setYN(f,v){document.querySelectorAll('.yb[data-f="'+f+'"]').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
+document.querySelectorAll('.yb').forEach(b=>b.onclick=()=>{const f=b.dataset.f,v=b.dataset.v;if(f==='ster')sterV=v;else vaxV=v;setYN(f,v)});
+$('photoIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image(),rd=new FileReader();
+  rd.onload=ev=>{img.onload=()=>{const s=96,c=document.createElement('canvas');c.width=s;c.height=s;const ctx=c.getContext('2d');
+    const side=Math.min(img.width,img.height);ctx.drawImage(img,(img.width-side)/2,(img.height-side)/2,side,side,0,0,s,s);
+    photoData=c.toDataURL('image/jpeg',.6);$('photoPh').innerHTML='<img src="'+photoData+'" style="width:100%;height:100%;object-fit:cover;border-radius:14px">'}
+    img.src=ev.target.result};rd.readAsDataURL(f)};
+$('formCancel').onclick=()=>go(dogs.length?'doglist':'login');
+$('formSave').onclick=()=>{
+  const name=$('fName').value.trim();if(!name){$('formErr').style.display='block';return}
+  const row={id:editId||('d'+Date.now()),name,breed:$('fBreed').value.trim(),age:$('fAge').value,weight:$('fWeight').value,
+    marks:$('fMarks').value.trim(),sterilized:sterV,vaccinated:vaxV,temperament:$('fTemp').value,status:$('fStatus').value,
+    area:$('fArea').value.trim(),collarId:$('fCollar').value.trim()||('COLLAR-0'+(dogs.length+1)),photo:photoData};
+  if(editId){const i=dogs.findIndex(d=>d.id===editId);dogs[i]=row}else dogs.unshift(row);
+  LS.set('dogs_'+account.phone,dogs);renderList();go('doglist');
+};
+$('fab').onclick=()=>openForm();
+$('logoutBtn').onclick=()=>{localStorage.removeItem('lastPhone');account=null;dogs=[];$('phoneIn').value='';go('mode')};
+
+const STCOL={'On the street':'#f0ad4e','Adopted':'#36c08a','In shelter':'#4aa3e0','Missing':'#ef6a6a'};
+function renderList(){
+  $('dlTitle').textContent=account.mode==='org'?(account.orgName||'Organization'):'My dogs';
+  $('dlSub').textContent=dogs.length+' dog'+(dogs.length!==1?'s':'')+' registered · logged in as '+account.phone;
+  $('dogListBox').innerHTML=dogs.length?dogs.map(d=>
+    '<div class="dogcard" data-id="'+d.id+'">'+(d.photo?('<img src="'+d.photo+'" style="border-radius:12px;object-fit:cover">'):'<div class="ph">🐶</div>')+
+    '<div style="flex:1"><b>'+d.name+'</b><div class="muted" style="font-size:12px">'+(d.breed||'Breed unknown')+(d.age?(' · '+d.age+'y'):'')+'</div>'+
+    '<span class="status" style="background:'+(STCOL[d.status]||'#888')+'">'+d.status+'</span></div>'+
+    '<button class="sm dashb" data-c="'+d.collarId+'" data-n="'+d.name.replace(/"/g,'&quot;')+'">📊</button></div>'
+  ).join(''):'<p class="muted">No dogs yet — tap + to add one.</p>';
+  document.querySelectorAll('.dogcard').forEach(c=>c.onclick=e=>{if(e.target.closest('.dashb'))return;openForm(dogs.find(d=>d.id===c.dataset.id))});
+  document.querySelectorAll('.dashb').forEach(b=>b.onclick=e=>{e.stopPropagation();openDash(b.dataset.c,b.dataset.n)});
+}
+
+function openDash(collarId,name){
+  curDog={collarId,name};temp=38.6;batt=82;pos={x:0,y:0};acked=false;sosUntil=0;
+  $('hwIpIn').value=hwIP;
+  readings=LS.get('readings_'+collarId,[]);
+  $('dashName').textContent=name;$('dashSub').textContent='Collar '+collarId;
+  $('camBox').classList.add('hide');
+  if(!hwConnected){
+    sim=true;$('simBtn').classList.add('on');
+    $('hwStatus').textContent='Simulation';
+    $('hwDot').classList.add('off');
+    $('hwConnectBtn').textContent='Connect';
+    $('cSeen').textContent='simulated';
+  } else {
+    sim=false;$('simBtn').classList.remove('on');
+    $('hwStatus').textContent='Live ('+hwIP+')';
+    $('hwDot').classList.remove('off');
+    $('hwConnectBtn').textContent='Disconnect';
+    $('cSeen').textContent='hardware live';
+  }
+  go('dash');renderDash();drawWave();
+}
+$('backBtn').onclick=()=>go('doglist');
+function fmtT(ts){return new Date(ts).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function latlng(){
+  if(hwConnected)return[liveLat.toFixed(5),liveLng.toFixed(5)];
+  return[(BASE[0]+pos.y/1000).toFixed(5),(BASE[1]+pos.x/1000).toFixed(5)];
+}
+function evalAlert(t,b){if(Date.now()<sosUntil)return'SOS triggered';if(t>39.5)return'High body temperature';if(b<15)return'Low battery';return''}
+function logReading(){
+  const ll=latlng();const row={ts:Date.now(),temp:+temp.toFixed(1),batt:Math.round(batt),lat:+ll[0],lng:+ll[1],alert:evalAlert(temp,batt)};
+  readings.unshift(row);readings=readings.slice(0,400);LS.set('readings_'+curDog.collarId,readings);
+  if(row.alert)acked=false; renderDash();
+}
+function tick(){
+  if(hwConnected)return; // Real hardware feeds live data
+  temp+=(Math.random()-.5)*.05;temp=Math.max(36.5,Math.min(41,temp));batt=Math.max(5,batt-.003);pos.x+=(Math.random()-.5)*.3;pos.y+=(Math.random()-.5)*.3;
+}
+function renderDash(){
+  $('tV').textContent=temp.toFixed(1)+'°C';$('bV').textContent=Math.round(batt)+'%';
+  const ll=latlng();$('gV').textContent=ll[0]+', '+ll[1];
+  if($('gMapA'))$('gMapA').href='https://maps.google.com/?q='+ll[0]+','+ll[1];
+  if(!hwConnected)$('camV').textContent='Standby';
+  $('cDot').classList.remove('off');
+  const al=readings.filter(r=>r.alert).slice(0,8);
+  $('alertBox').innerHTML=al.length?al.map(r=>'<li><span class="muted">'+fmtT(r.ts)+'</span> '+r.alert+(acked?' — ack':'')+'</li>').join(''):'<li class="muted">No alerts yet.</li>';
+  renderHist();
+}
+function renderHist(){
+  const cutoff=range>0?Date.now()-range*3600*1000:0;const rows=readings.filter(r=>r.ts>=cutoff);
+  $('histBody').innerHTML=rows.length?rows.map(r=>'<tr><td>'+fmtT(r.ts)+'</td><td>'+r.temp+'</td><td>'+r.batt+'</td><td>'+r.lat+'</td><td>'+r.lng+'</td><td>'+(r.alert?('<span style="color:var(--bad)">'+r.alert+'</span>'):'')+'</td></tr>').join(''):'<tr><td colspan="6" class="muted">No readings yet.</td></tr>';
+  drawWave();
+}
+function drawWave(){
+  const c=$('wave'),ctx=c.getContext('2d'),w=c.clientWidth||300,h=130;c.width=w;c.height=h;ctx.clearRect(0,0,w,h);
+  const data=readings.slice(0,60).slice().reverse();
+  ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--line');ctx.beginPath();ctx.moveTo(0,h-18);ctx.lineTo(w,h-18);ctx.stroke();
+  if(!data.length)return;const mn=36.5,mx=41;const g=ctx.createLinearGradient(0,0,w,0);g.addColorStop(0,'#4aa3e0');g.addColorStop(1,'#ff6f6f');
+  ctx.strokeStyle=g;ctx.lineWidth=2.2;ctx.beginPath();
+  data.forEach((r,i)=>{const x=i*w/Math.max(1,data.length-1),y=h-10-((r.temp-mn)/(mx-mn))*(h-28);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();
+  ctx.fillStyle='#ef6a6a';data.forEach((r,i)=>{if(r.alert){const x=i*w/Math.max(1,data.length-1),y=h-10-((r.temp-mn)/(mx-mn))*(h-28);ctx.beginPath();ctx.arc(x,y,3,0,7);ctx.fill()}});
+}
+document.querySelectorAll('.rb').forEach(b=>b.onclick=()=>{range=+b.dataset.r;document.querySelectorAll('.rb').forEach(x=>x.classList.toggle('on',x===b));renderHist()});
+$('simBtn').onclick=()=>{if(hwConnected)return;sim=!sim;$('simBtn').classList.toggle('on',sim)};
+$('logBtn').onclick=()=>logReading();
+$('sosBtn').onclick=()=>{
+  sosUntil=Date.now()+15000;
+  if(hwConnected){fetch('http://'+hwIP+'/api/sos',{method:'POST'}).catch(()=>{})}
+  logReading();
+};
+$('ackBtn').onclick=()=>{acked=true;renderDash()};
+$('csvBtn').onclick=()=>{
+  const cutoff=range>0?Date.now()-range*3600*1000:0;const rows=readings.filter(r=>r.ts>=cutoff);
+  const csv='time,temp_c,batt_pct,lat,lng,alert\n'+rows.map(r=>[fmtT(r.ts),r.temp,r.batt,r.lat,r.lng,r.alert||''].join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='collar-readings.csv';a.click();
+};
+
+// ======================== LIVE HARDWARE INTEGRATION ========================
+async function fetchHardware(){
+  if(!hwConnected||!curDog)return;
+  try{
+    const res=await fetch('http://'+hwIP+'/api/telemetry',{signal:AbortSignal.timeout(2500)});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    temp=+d.temp;
+    batt=+d.batt;
+    if(d.lat&&d.lng){liveLat=+d.lat;liveLng=+d.lng}
+    $('hwStatus').textContent='Live ('+hwIP+')';
+    $('hwDot').classList.remove('off');
+    $('camV').textContent=d.camReady?'Ready':'Standby';
+    $('cSeen').textContent='hardware live';
+
+    const al=d.alert||evalAlert(temp,batt);
+    const row={ts:Date.now(),temp:+temp.toFixed(1),batt:Math.round(batt),lat:+liveLat.toFixed(5),lng:+liveLng.toFixed(5),alert:al};
+    readings.unshift(row);readings=readings.slice(0,400);LS.set('readings_'+curDog.collarId,readings);
+    if(al)acked=false;
+    renderDash();
+  }catch(e){
+    $('hwStatus').textContent='Polling...';
+    $('hwDot').classList.add('off');
+  }
+}
+
+async function toggleHardware(){
+  if(hwConnected){
+    hwConnected=false;
+    if(hwPollTimer)clearInterval(hwPollTimer);
+    $('hwConnectBtn').textContent='Connect';
+    $('hwStatus').textContent='Simulation';
+    $('hwDot').classList.add('off');
+    $('cSeen').textContent='simulated';
+    sim=true;$('simBtn').classList.add('on');
+    return;
+  }
+  const ip=$('hwIpIn').value.trim();
+  if(!ip){alert('Please enter a collar IP address');return}
+  hwIP=ip;localStorage.setItem('pawtrack_hw_ip',ip);
+  $('hwConnectBtn').textContent='Checking...';
+  try{
+    const res=await fetch('http://'+ip+'/api/telemetry',{signal:AbortSignal.timeout(3500)});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    hwConnected=true;
+    sim=false;$('simBtn').classList.remove('on');
+    $('hwConnectBtn').textContent='Disconnect';
+    $('hwStatus').textContent='Live ('+ip+')';
+    $('hwDot').classList.remove('off');
+    $('cSeen').textContent='hardware live';
+    if(hwPollTimer)clearInterval(hwPollTimer);
+    hwPollTimer=setInterval(fetchHardware,2000);
+    fetchHardware();
+  }catch(err){
+    $('hwConnectBtn').textContent='Connect';
+    $('hwStatus').textContent='Failed to connect';
+    $('hwDot').classList.add('off');
+    alert('Could not connect to collar at http://'+ip+'.\n\nTips:\n1. Ensure phone/PC is connected to collar Wi-Fi (Pawtrack-Collar-01) or same router.\n2. Verify the IP address in Arduino IDE Serial Monitor.');
+  }
+}
+
+$('hwConnectBtn').onclick=()=>toggleHardware();
+
+$('camCard').onclick=()=>{
+  $('camBox').classList.toggle('hide');
+  if(!$('camBox').classList.contains('hide'))capturePhoto();
+};
+$('closeCamBtn').onclick=()=>$('camBox').classList.add('hide');
+$('snapBtn').onclick=()=>capturePhoto();
+
+async function capturePhoto(){
+  $('camBox').classList.remove('hide');
+  $('camMsg').textContent='Capturing frame from OV2640...';
+  $('camMsg').style.display='block';
+  $('camImg').style.display='none';
+  if(!hwConnected){
+    setTimeout(()=>{
+      $('camMsg').textContent='Collar not connected. Connect collar hardware to view live camera snapshots.';
+    },400);
+    return;
+  }
+  try{
+    const res=await fetch('http://'+hwIP+'/capture?t='+Date.now(),{signal:AbortSignal.timeout(6000)});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    $('camImg').src=url;
+    $('camImg').style.display='block';
+    $('camMsg').style.display='none';
+    $('camV').textContent='Captured';
+  }catch(e){
+    $('camMsg').textContent='Capture failed: '+e.message;
+  }
+}
+
+setInterval(()=>{if(curDog)tick()},1000);
+setInterval(()=>{if(curDog&&sim&&!hwConnected)logReading()},8000);
+setInterval(()=>{if(curDog)renderDash()},1000);
+addEventListener('resize',drawWave);
+
+(function autoResume(){
+  const lastPhone=LS.get('lastPhone',null);
+  if(!lastPhone)return;
+  const acc=LS.get('acct_'+lastPhone,null);
+  if(!acc)return;
+  account=acc;dogs=LS.get('dogs_'+lastPhone,[]);renderList();go('doglist');
+})();
+
+const savedT=localStorage.getItem('theme');
+if(savedT){document.documentElement.setAttribute('data-t',savedT);$('themeBtn').textContent=savedT==='dark'?'☀️':'🌙'}
+$('themeBtn').onclick=()=>{
+  const cur=document.documentElement.getAttribute('data-t')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  const next=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-t',next);localStorage.setItem('theme',next);
+  $('themeBtn').textContent=next==='dark'?'☀️':'🌙';
+};
+</script>
+</body></html>
