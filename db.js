@@ -35,11 +35,17 @@ db.exec(`
     lat REAL,
     lng REAL,
     alert TEXT DEFAULT '',
+    ambient_temp REAL,
+    humidity REAL,
     FOREIGN KEY (dog_id) REFERENCES dogs(id) ON DELETE CASCADE
   );
 
   CREATE INDEX IF NOT EXISTS idx_readings_dog_ts ON readings(dog_id, ts DESC);
 `);
+
+// Safe migrations for columns if table was created in an earlier version
+try { db.exec('ALTER TABLE readings ADD COLUMN ambient_temp REAL;'); } catch (e) {}
+try { db.exec('ALTER TABLE readings ADD COLUMN humidity REAL;'); } catch (e) {}
 
 // ── Prepared statements ─────────────────────────────────────────────
 const stmts = {
@@ -73,8 +79,8 @@ const stmts = {
     ORDER BY ts DESC LIMIT 500
   `),
   insertReading: db.prepare(`
-    INSERT INTO readings (dog_id, temp, batt, lat, lng, alert)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO readings (dog_id, temp, batt, lat, lng, alert, ambient_temp, humidity)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `),
   latestReading: db.prepare('SELECT * FROM readings WHERE dog_id = ? ORDER BY ts DESC LIMIT 1'),
 };
@@ -142,23 +148,35 @@ function getReadings(dogId, hoursAgo = 0) {
 }
 
 function addReading(dogId, data) {
+  const bodyTemp = data.temp ?? data.body_temp ?? null;
+  const latitude = data.lat ?? data.latitude ?? null;
+  const longitude = data.lng ?? data.longitude ?? null;
+  const ambientTemp = data.ambient_temp ?? null;
+  const humidity = data.humidity ?? null;
+  const batt = data.batt ?? null;
+  const alert = data.alert ?? '';
+
   const params = [
     dogId,
-    data.temp ?? null,
-    data.batt ?? null,
-    data.lat ?? null,
-    data.lng ?? null,
-    data.alert ?? '',
+    bodyTemp !== null ? Number(bodyTemp) : null,
+    batt !== null ? Math.round(Number(batt)) : null,
+    latitude !== null ? Number(latitude) : null,
+    longitude !== null ? Number(longitude) : null,
+    alert,
+    ambientTemp !== null ? Number(ambientTemp) : null,
+    humidity !== null ? Number(humidity) : null,
   ];
   const info = stmts.insertReading.run(...params);
   return {
     id: Number(info.lastInsertRowid),
     dog_id: dogId,
-    temp: data.temp ?? null,
-    batt: data.batt ?? null,
-    lat: data.lat ?? null,
-    lng: data.lng ?? null,
-    alert: data.alert ?? '',
+    temp: params[1],
+    batt: params[2],
+    lat: params[3],
+    lng: params[4],
+    alert: params[5],
+    ambient_temp: params[6],
+    humidity: params[7],
   };
 }
 

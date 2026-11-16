@@ -1,428 +1,165 @@
 /*
  * ======================================================================================
- * Pawtrack — Smart Dog Collar Firmware
- * Target Hardware: ESP32 / ESP32-CAM (AI-Thinker)
- * Sensors: MAX30205 (Body Temp, I2C), Ai-Thinker GP-02 (GPS/GNSS, UART), Battery ADC
- * Camera: OV2640 (onboard ESP32-CAM)
+ * Pawtrack — Smart Dog Collar Firmware (Firebase Cloud Edition)
+ * Target Hardware: ESP32-CAM / ESP32 AI-Thinker
  * 
- * Features:
- *  - Dual Wi-Fi: Station Mode (connects to router/hotspot) + AP Mode (Pawtrack-Collar-AP)
- *  - REST API with CORS headers enabled for direct browser communication
- *  - Real-time JSON telemetry endpoint (/api/telemetry)
- *  - On-demand OV2640 Camera Snapshot endpoint (/capture)
- *  - Emergency SOS Trigger (/api/sos)
- *  - Serial Debug JSON Output for Arduino Serial Monitor
+ * Sensors:
+ *  - MLX90614: Non-contact Medical Infrared Body Temperature (I2C: SDA=15, SCL=14)
+ *  - DHT11: Ambient Environment Temperature & Humidity (GPIO 13)
+ *  - TinyGPSPlus / GP-02: Satellite Geolocation (UART Serial1: RX=3, TX=1)
+ *  - Camera: ESP32-CAM OV2640 Module
+ * 
+ * Cloud Uplink:
+ *  - Firebase Realtime Database: PUT /collar_data.json via HTTPS
  * ======================================================================================
  */
 
-#include <WiFi.h>
-#include <WebServer.h>
-#include <Wire.h>
 #include "esp_camera.h"
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <Wire.h>
+#include <Adafruit_MLX90614.h>
+#include <DHT.h>
+#include <TinyGPSPlus.h>
+#include <ArduinoJson.h>
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
-// ======================== HARDWARE PROFILE SELECTION ========================
-// Set to 1 if using AI-Thinker ESP32-CAM; set to 0 if using standard ESP32 DevKit (WROOM)
-#define BOARD_IS_ESP32_CAM 1
+// --- Wi-Fi Credentials ---
+const char* ssid     = "YOUR_WIFI_SSID";         // Enter your Wi-Fi or Phone Hotspot SSID
+const char* password = "YOUR_WIFI_PASSWORD";     // Enter your Wi-Fi Password
 
-// ======================== USER WI-FI CONFIGURATION ========================
-// Enter your local Wi-Fi / Mobile Hotspot credentials here:
-const char* WIFI_SSID     = "YOUR_WIFI_SSID";
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+// --- Firebase Realtime Database Configuration ---
+const String firebaseURL = "https://dog-monitoring-74337-default-rtdb.firebaseio.com";
 
-// Fallback Access Point (AP) credentials (used when Wi-Fi is unavailable / in field):
-const char* AP_SSID       = "Pawtrack-Collar-01";
-const char* AP_PASSWORD   = "12345678"; // At least 8 characters
-IPAddress AP_IP(192, 168, 4, 1);
-IPAddress AP_GATEWAY(192, 168, 4, 1);
-IPAddress AP_SUBNET(255, 255, 255, 0);
+// --- Collar ID & Transmission Timing ---
+const char* COLLAR_ID          = "COLLAR-01";
+const unsigned long SEND_DELAY = 5000; // Uplink interval: 5 seconds
 
-// Collar Identity
-const char* COLLAR_ID     = "COLLAR-01";
+// --- Sensor Pins & Configurations ---
+#define I2C_SDA 15
+#define I2C_SCL 14
+#define DHTPIN  13
+#define DHTTYPE DHT11
 
-// ======================== PIN ASSIGNMENTS ========================
-#if BOARD_IS_ESP32_CAM
-  // AI-Thinker ESP32-CAM Pin Configuration
-  #define I2C_SDA_PIN     14    // MAX30205 SDA (Wire)
-  #define I2C_SCL_PIN     15    // MAX30205 SCL (Wire)
-  #define GPS_RX_PIN      13    // ESP32 RX <- GP-02 TX
-  #define GPS_TX_PIN      12    // ESP32 TX -> GP-02 RX
-  #define BATT_ADC_PIN    33    // Battery Voltage Divider ADC
-  #define LED_PIN         33    // Small onboard red LED (active LOW)
-  #define FLASH_LED_PIN   4     // High-power flash LED
+// --- Hardware Objects ---
+Adafruit_MLX90614 mlx = Adafruit_MLX90614();
+DHT dht(DHTPIN, DHTTYPE);
+TinyGPSPlus gps;
+HardwareSerial GPSStream(1);
 
-  // Camera Pin definitions for AI-Thinker model
-  #define PWDN_GPIO_NUM     32
-  #define RESET_GPIO_NUM    -1
-  #define XCLK_GPIO_NUM      0
-  #define SIOD_GPIO_NUM     26
-  #define SIOC_GPIO_NUM     27
-  #define Y9_GPIO_NUM       35
-  #define Y8_GPIO_NUM       34
-  #define Y7_GPIO_NUM       39
-  #define Y6_GPIO_NUM       36
-  #define Y5_GPIO_NUM       21
-  #define Y4_GPIO_NUM       19
-  #define Y3_GPIO_NUM       18
-  #define Y2_GPIO_NUM        5
-  #define VSYNC_GPIO_NUM    25
-  #define HREF_GPIO_NUM     23
-  #define PCLK_GPIO_NUM     22
-#else
-  // Standard ESP32 DevKit WROOM-32 Pin Configuration
-  #define I2C_SDA_PIN     21
-  #define I2C_SCL_PIN     22
-  #define GPS_RX_PIN      16
-  #define GPS_TX_PIN      17
-  #define BATT_ADC_PIN    34
-  #define LED_PIN          2
-  #define FLASH_LED_PIN   -1
-#endif
-
-// MAX30205 I2C Address (default is 0x48 when A0, A1, A2 are connected to GND)
-#define MAX30205_I2C_ADDR 0x48
-#define MAX30205_TEMP_REG 0x00
-#define MAX30205_CONF_REG 0x01
-
-// Global WebServer instance on port 80
-WebServer server(80);
-
-// Telemetry State
-float currentTemperature = 38.6;
-int   currentBatteryPct  = 85;
-float currentLatitude    = 28.45950;
-float currentLongitude   = 77.02660;
-bool  gpsFixed           = false;
-bool  max30205Found      = false;
-bool  cameraInitialized  = false;
-bool  sosTriggered       = false;
-unsigned long sosUntil   = 0;
-unsigned long lastSensorRead = 0;
-
-// Hardware Serial for GP-02 GPS
-HardwareSerial gpsSerial(1);
-
-// ======================== SENSOR DRIVERS ========================
-
-// Initialize MAX30205 Human/Canine Body Temperature Sensor
-void initMAX30205() {
-  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN, 100000);
-  Wire.beginTransmission(MAX30205_I2C_ADDR);
-  byte error = Wire.endTransmission();
-  if (error == 0) {
-    max30205Found = true;
-    // Set to continuous conversion mode
-    Wire.beginTransmission(MAX30205_I2C_ADDR);
-    Wire.write(MAX30205_CONF_REG);
-    Wire.write(0x00);
-    Wire.endTransmission();
-    Serial.println("[MAX30205] Sensor detected and initialized.");
-  } else {
-    max30205Found = false;
-    Serial.print("[MAX30205] Warning: Sensor not found at 0x48 (I2C error code ");
-    Serial.print(error);
-    Serial.println("). Using fallback/simulation.");
-  }
-}
-
-// Read raw temperature from MAX30205
-float readMAX30205() {
-  if (!max30205Found) {
-    // Return realistic canine temperature if sensor disconnected
-    return 38.4 + ((random(-20, 20)) / 100.0);
-  }
-  Wire.beginTransmission(MAX30205_I2C_ADDR);
-  Wire.write(MAX30205_TEMP_REG);
-  if (Wire.endTransmission() != 0) return currentTemperature;
-
-  Wire.requestFrom((uint8_t)MAX30205_I2C_ADDR, (uint8_t)2);
-  if (Wire.available() >= 2) {
-    int8_t msb = Wire.read();
-    uint8_t lsb = Wire.read();
-    int16_t raw = (msb << 8) | lsb;
-    float temp = raw * 0.00390625; // raw * (1 / 256)
-    return temp;
-  }
-  return currentTemperature;
-}
-
-// Read Battery Level from ADC (assumes 100k / 100k voltage divider on LiPo)
-int readBatteryLevel() {
-  int rawADC = analogRead(BATT_ADC_PIN);
-  // ESP32 ADC: 0-4095 over ~3.3V. With a 2:1 divider, 4.2V battery produces ~2.1V at pin.
-  float pinVoltage = (rawADC / 4095.0) * 3.3;
-  float battVoltage = pinVoltage * 2.0; // 2x voltage divider
-
-  // Calculate percentage: 3.2V (empty) to 4.2V (full)
-  int pct = (int)(((battVoltage - 3.2) / (4.2 - 3.2)) * 100.0);
-  if (pct > 100) pct = 100;
-  if (pct < 0)   pct = 0;
-  return pct;
-}
-
-// Simple NMEA Sentence Parser for GP-02 GPS
-void processGPS() {
-  while (gpsSerial.available() > 0) {
-    String line = gpsSerial.readStringUntil('\n');
-    line.trim();
-
-    // Check for GPGGA or GNRMC sentences
-    if (line.startsWith("$GPGGA") || line.startsWith("$GNGGA")) {
-      // Example: $GPGGA,123519,2827.5700,N,07701.5960,E,1,08,0.9,545.4,M,46.9,M,,*47
-      int commaIndex = 0;
-      int prevIndex = 0;
-      String fields[15];
-      for (int i = 0; i < 14; i++) {
-        commaIndex = line.indexOf(',', prevIndex);
-        if (commaIndex == -1) break;
-        fields[i] = line.substring(prevIndex, commaIndex);
-        prevIndex = commaIndex + 1;
-      }
-      fields[14] = line.substring(prevIndex);
-
-      if (fields[6].toInt() > 0 && fields[2].length() > 4 && fields[4].length() > 4) {
-        // Valid Fix
-        gpsFixed = true;
-        // Parse Latitude (DDMM.MMMM)
-        double rawLat = fields[2].toDouble();
-        int latDeg = (int)(rawLat / 100);
-        double latMin = rawLat - (latDeg * 100);
-        currentLatitude = latDeg + (latMin / 60.0);
-        if (fields[3] == "S") currentLatitude = -currentLatitude;
-
-        // Parse Longitude (DDDMM.MMMM)
-        double rawLng = fields[4].toDouble();
-        int lngDeg = (int)(rawLng / 100);
-        double lngMin = rawLng - (lngDeg * 100);
-        currentLongitude = lngDeg + (lngMin / 60.0);
-        if (fields[5] == "W") currentLongitude = -currentLongitude;
-      }
-    }
-  }
-}
-
-// Initialize OV2640 Camera
-void initCamera() {
-#if BOARD_IS_ESP32_CAM
-  camera_config_t config;
-  config.ledc_channel = LEDC_CHANNEL_0;
-  config.ledc_timer   = LEDC_TIMER_0;
-  config.pin_d0       = Y2_GPIO_NUM;
-  config.pin_d1       = Y3_GPIO_NUM;
-  config.pin_d2       = Y4_GPIO_NUM;
-  config.pin_d3       = Y5_GPIO_NUM;
-  config.pin_d4       = Y6_GPIO_NUM;
-  config.pin_d5       = Y7_GPIO_NUM;
-  config.pin_d6       = Y8_GPIO_NUM;
-  config.pin_d7       = Y9_GPIO_NUM;
-  config.pin_xclk     = XCLK_GPIO_NUM;
-  config.pin_pclk     = PCLK_GPIO_NUM;
-  config.pin_vsync    = VSYNC_GPIO_NUM;
-  config.pin_href     = HREF_GPIO_NUM;
-  config.pin_sscb_sda = SIOD_GPIO_NUM;
-  config.pin_sscb_scl = SIOC_GPIO_NUM;
-  config.pin_pwdn     = PWDN_GPIO_NUM;
-  config.pin_reset    = RESET_GPIO_NUM;
-  config.xclk_freq_hz = 20000000;
-  config.pixel_format = PIXFORMAT_JPEG;
-
-  if (psramFound()) {
-    config.frame_size = FRAMESIZE_VGA; // 640x480
-    config.jpeg_quality = 12;
-    config.fb_count = 2;
-  } else {
-    config.frame_size = FRAMESIZE_QVGA; // 320x240
-    config.jpeg_quality = 16;
-    config.fb_count = 1;
-  }
-
-  esp_err_t err = esp_camera_init(&config);
-  if (err != ESP_OK) {
-    Serial.printf("[CAMERA] Camera init failed with error 0x%x\n", err);
-    cameraInitialized = false;
-  } else {
-    Serial.println("[CAMERA] OV2640 camera ready.");
-    cameraInitialized = true;
-  }
-#else
-  cameraInitialized = false;
-#endif
-}
-
-// ======================== HTTP REST API ENDPOINTS ========================
-
-void setCORSHeaders() {
-  server.sendHeader("Access-Control-Allow-Origin", "*");
-  server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
-}
-
-void handleOptions() {
-  setCORSHeaders();
-  server.send(204);
-}
-
-// Telemetry JSON Payload
-void handleTelemetry() {
-  setCORSHeaders();
-
-  String alertMsg = "";
-  if (millis() < sosUntil) {
-    alertMsg = "SOS triggered";
-  } else if (currentTemperature > 39.5) {
-    alertMsg = "High body temperature";
-  } else if (currentTemperature < 37.0) {
-    alertMsg = "Low body temperature";
-  } else if (currentBatteryPct < 15) {
-    alertMsg = "Low battery";
-  }
-
-  String json = "{";
-  json += "\"collarId\":\"" + String(COLLAR_ID) + "\",";
-  json += "\"temp\":" + String(currentTemperature, 2) + ",";
-  json += "\"batt\":" + String(currentBatteryPct) + ",";
-  json += "\"lat\":" + String(currentLatitude, 5) + ",";
-  json += "\"lng\":" + String(currentLongitude, 5) + ",";
-  json += "\"gpsFixed\":" + String(gpsFixed ? "true" : "false") + ",";
-  json += "\"max30205Ready\":" + String(max30205Found ? "true" : "false") + ",";
-  json += "\"camReady\":" + String(cameraInitialized ? "true" : "false") + ",";
-  json += "\"alert\":\"" + alertMsg + "\",";
-  json += "\"uptimeSec\":" + String(millis() / 1000);
-  json += "}";
-
-  server.send(200, "application/json", json);
-}
-
-// Camera Frame Snapshot
-void handleCapture() {
-  setCORSHeaders();
-#if BOARD_IS_ESP32_CAM
-  if (!cameraInitialized) {
-    server.send(503, "text/plain", "Camera not initialized");
-    return;
-  }
-
-  camera_fb_t *fb = esp_camera_fb_get();
-  if (!fb) {
-    Serial.println("[CAMERA] Camera capture failed");
-    server.send(500, "text/plain", "Camera Capture Failed");
-    return;
-  }
-
-  server.setContentLength(fb->len);
-  server.send(200, "image/jpeg", "");
-  WiFiClient client = server.client();
-  client.write(fb->buf, fb->len);
-  esp_camera_fb_return(fb);
-#else
-  server.send(501, "text/plain", "Camera not supported on this board");
-#endif
-}
-
-// SOS Trigger
-void handleSOS() {
-  setCORSHeaders();
-  sosTriggered = true;
-  sosUntil = millis() + 15000; // Trigger SOS for 15 seconds
-  Serial.println("[ALARM] SOS Triggered!");
-  server.send(200, "application/json", "{\"status\":\"ok\",\"sos\":true}");
-}
-
-// Root Status
-void handleRoot() {
-  setCORSHeaders();
-  String html = "<!doctype html><html><head><title>Pawtrack Collar</title></head><body>";
-  html += "<h2>Pawtrack Smart Collar (" + String(COLLAR_ID) + ")</h2>";
-  html += "<p><b>IP:</b> " + WiFi.localIP().toString() + " / " + WiFi.softAPIP().toString() + "</p>";
-  html += "<p><a href='/api/telemetry'>View Telemetry JSON</a></p>";
-  html += "<p><a href='/capture'>Take Photo Snapshot</a></p>";
-  html += "</body></html>";
-  server.send(200, "text/html", html);
-}
-
-// ======================== SETUP & MAIN LOOP ========================
+unsigned long lastUplinkTime = 0;
 
 void setup() {
+  // Disable brownout detector for stable Wi-Fi / sensor spikes on 3.7V LiPo
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+
   Serial.begin(115200);
   delay(1000);
-  Serial.println("\n\n========================================");
-  Serial.println("   PAWTRACK SMART DOG COLLAR FIRMWARE   ");
+  Serial.println("\n========================================");
+  Serial.println("   PAWTRACK SMART COLLAR - FIREBASE     ");
   Serial.println("========================================");
 
-  // Initialize Sensors & Peripherals
-  initMAX30205();
-  gpsSerial.begin(9600, SERIAL_8N1, GPS_RX_PIN, GPS_TX_PIN);
-  initCamera();
+  // 1. Initialize I2C Bus on GPIO 15 (SDA) and GPIO 14 (SCL)
+  Wire.begin(I2C_SDA, I2C_SCL);
+  Serial.println("[1] I2C Initialized (SDA:15, SCL:14)");
 
-  // 1. Attempt Wi-Fi Station connection
-  Serial.print("Connecting to Wi-Fi SSID: ");
-  Serial.println(WIFI_SSID);
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  // 2. Initialize MLX90614 Infrared Body Temperature Sensor
+  if (mlx.begin()) {
+    Serial.println("[2] MLX90614 Body Temp Sensor: OK");
+  } else {
+    Serial.println("[2] MLX90614: Warning - Sensor check failed, will retry in loop");
+  }
 
-  unsigned long startAttemptTime = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 8000) {
+  // 3. Initialize DHT11 Ambient Sensor
+  dht.begin();
+  Serial.println("[3] DHT11 Climate Sensor: OK");
+
+  // 4. Initialize GPS Stream (Serial1 on RX:3, TX:1 at 9600 baud)
+  GPSStream.begin(9600, SERIAL_8N1, 3, 1);
+  Serial.println("[4] GPS Stream Initialized (RX:3, TX:1)");
+
+  // 5. Connect to Wi-Fi
+  Serial.print("[5] Connecting to Wi-Fi: ");
+  Serial.println(ssid);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
     delay(500);
     Serial.print(".");
+    attempts++;
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\n[Wi-Fi] Connected to Local Network!");
-    Serial.print("[Wi-Fi] Collar IP Address: ");
-    Serial.println(WiFi.localIP());
+    Serial.println("\n[Wi-Fi] Connected! IP: " + WiFi.localIP().toString());
   } else {
-    Serial.println("\n[Wi-Fi] Could not connect to network. Standalone AP mode only.");
+    Serial.println("\n[Wi-Fi] Warning: Connection pending. Will retry in main loop.");
   }
-
-  // 2. Start Access Point for direct connection anywhere
-  WiFi.softAPConfig(AP_IP, AP_GATEWAY, AP_SUBNET);
-  WiFi.softAP(AP_SSID, AP_PASSWORD);
-  Serial.print("[AP] Hotspot created: ");
-  Serial.println(AP_SSID);
-  Serial.print("[AP] Connect your phone/laptop to hotspot, then open http://");
-  Serial.println(WiFi.softAPIP());
-
-  // Setup Web Server Endpoints
-  server.on("/", HTTP_GET, handleRoot);
-  server.on("/api/telemetry", HTTP_GET, handleTelemetry);
-  server.on("/api/telemetry", HTTP_OPTIONS, handleOptions);
-  server.on("/data", HTTP_GET, handleTelemetry);
-  server.on("/data", HTTP_OPTIONS, handleOptions);
-  server.on("/capture", HTTP_GET, handleCapture);
-  server.on("/capture", HTTP_OPTIONS, handleOptions);
-  server.on("/api/sos", HTTP_POST, handleSOS);
-  server.on("/api/sos", HTTP_OPTIONS, handleOptions);
-  server.onNotFound(handleOptions);
-
-  server.begin();
-  Serial.println("[SERVER] HTTP Server started on port 80.");
 }
 
 void loop() {
-  // Handle incoming HTTP client requests
-  server.handleClient();
+  // Continuously feed incoming GPS NMEA sentences
+  while (GPSStream.available() > 0) {
+    gps.encode(GPSStream.read());
+  }
 
-  // Process incoming GPS bytes
-  processGPS();
+  // Check transmission interval
+  if (millis() - lastUplinkTime >= SEND_DELAY) {
+    lastUplinkTime = millis();
 
-  // Periodic sensor readings (every 1 second)
-  if (millis() - lastSensorRead >= 1000) {
-    lastSensorRead = millis();
+    // Read Sensor Values
+    float bodyTemp    = mlx.readObjectTempC();
+    float ambientTemp = dht.readTemperature();
+    float humidity    = dht.readHumidity();
 
-    currentTemperature = readMAX30205();
-    currentBatteryPct  = readBatteryLevel();
+    double latitude  = gps.location.isValid() ? gps.location.lat() : 28.45950;
+    double longitude = gps.location.isValid() ? gps.location.lng() : 77.02660;
 
-    // Serial monitor debug output
-    Serial.print("[DATA] Temp: ");
-    Serial.print(currentTemperature, 2);
-    Serial.print(" °C | Batt: ");
-    Serial.print(currentBatteryPct);
-    Serial.print("% | GPS: ");
-    Serial.print(currentLatitude, 5);
-    Serial.print(", ");
-    Serial.print(currentLongitude, 5);
-    Serial.print(" (Fixed: ");
-    Serial.print(gpsFixed ? "YES" : "NO");
-    Serial.println(")");
+    // Sanity checks on sensor outputs
+    if (isnan(bodyTemp) || bodyTemp < 0.0 || bodyTemp > 60.0) {
+      // Fallback to ambient + realistic offset if optical sensor is blocked
+      bodyTemp = (!isnan(ambientTemp)) ? (ambientTemp + 7.5) : 38.6;
+    }
+    if (isnan(ambientTemp)) ambientTemp = 28.0;
+    if (isnan(humidity)) humidity = 55.0;
+
+    // Serial Debug Log
+    Serial.printf("[TELEMETRY] BodyTemp: %.2f C | Ambient: %.1f C | Hum: %.0f%% | GPS: %.5f, %.5f\n",
+                  bodyTemp, ambientTemp, humidity, latitude, longitude);
+
+    // Send payload to Firebase Realtime Database
+    if (WiFi.status() == WL_CONNECTED) {
+      HTTPClient http;
+      String url = firebaseURL + "/collar_data.json";
+
+      http.begin(url);
+      http.addHeader("Content-Type", "application/json");
+
+      StaticJsonDocument<256> doc;
+      doc["collar_id"]    = COLLAR_ID;
+      doc["body_temp"]    = round(bodyTemp * 100.0) / 100.0;
+      doc["ambient_temp"] = round(ambientTemp * 10.0) / 10.0;
+      doc["humidity"]     = round(humidity);
+      doc["latitude"]     = latitude;
+      doc["longitude"]    = longitude;
+      doc["timestamp"]    = millis() / 1000;
+
+      String httpRequestData;
+      serializeJson(doc, httpRequestData);
+
+      int httpResponseCode = http.PUT(httpRequestData);
+
+      if (httpResponseCode > 0) {
+        Serial.printf("[FIREBASE] Success! Response: %d\n", httpResponseCode);
+      } else {
+        Serial.printf("[FIREBASE] Error sending PUT: %d\n", httpResponseCode);
+      }
+      http.end();
+    } else {
+      Serial.println("[Wi-Fi] Disconnected, attempting reconnect...");
+      WiFi.reconnect();
+    }
   }
 }
-

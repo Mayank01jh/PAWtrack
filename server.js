@@ -15,6 +15,7 @@ const {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const DEFAULT_FIREBASE_URL = process.env.FIREBASE_URL || 'https://dog-monitoring-74337-default-rtdb.firebaseio.com/collar_data.json';
 
 // ── Middleware ───────────────────────────────────────────────────────
 app.use(cors());
@@ -124,6 +125,54 @@ app.post('/api/dogs/:id/sos', (req, res) => {
   }
 });
 
+// ── Firebase Cloud Integration ───────────────────────────────────────
+
+// Proxy current collar data from Firebase Realtime Database
+app.get('/api/firebase/data', async (req, res) => {
+  let url = req.query.url || DEFAULT_FIREBASE_URL;
+  if (!url.endsWith('.json')) url = url.replace(/\/+$/, '') + '/collar_data.json';
+  try {
+    const fRes = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!fRes.ok) throw new Error(`Firebase returned HTTP ${fRes.status}`);
+    const data = await fRes.json();
+    res.json(data || {});
+  } catch (err) {
+    res.status(502).json({ error: `Firebase fetch failed: ${err.message}` });
+  }
+});
+
+// Sync current Firebase data into a specific dog's telemetry record
+app.post('/api/dogs/:id/firebase-sync', async (req, res) => {
+  const dogId = Number(req.params.id);
+  if (!getDogById(dogId)) return res.status(404).json({ error: 'Dog not found' });
+  let url = req.body?.url || DEFAULT_FIREBASE_URL;
+  if (!url.endsWith('.json')) url = url.replace(/\/+$/, '') + '/collar_data.json';
+  try {
+    const fRes = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!fRes.ok) throw new Error(`Firebase returned HTTP ${fRes.status}`);
+    const data = await fRes.json();
+    if (!data) return res.json({ message: 'No data currently in Firebase' });
+
+    let alert = '';
+    const bodyTemp = Number(data.body_temp);
+    if (bodyTemp > 39.5) alert = 'Critical Hyperthermia (> 39.5°C)';
+    else if (bodyTemp > 0 && bodyTemp < 37.0) alert = 'Hypothermia Warning (< 37.0°C)';
+
+    const reading = addReading(dogId, {
+      temp: data.body_temp,
+      ambient_temp: data.ambient_temp,
+      humidity: data.humidity,
+      lat: data.latitude,
+      lng: data.longitude,
+      batt: data.batt ?? null,
+      alert,
+    });
+    res.json({ success: true, reading, raw: data });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
 // CSV export of readings
 app.get('/api/dogs/:id/readings/export', (req, res) => {
   const dogId = Number(req.params.id);
@@ -135,9 +184,20 @@ app.get('/api/dogs/:id/readings/export', (req, res) => {
   res.setHeader('Content-Disposition', 'attachment; filename=collar-readings.csv');
 
   // Header row
-  res.write('id,dog_id,ts,temp,batt,lat,lng,alert\n');
+  res.write('id,dog_id,ts,body_temp,ambient_temp,humidity,batt,lat,lng,alert\n');
   for (const r of rows) {
-    const line = [r.id, r.dog_id, r.ts, r.temp, r.batt, r.lat, r.lng, `"${(r.alert || '').replace(/"/g, '""')}"`].join(',');
+    const line = [
+      r.id,
+      r.dog_id,
+      r.ts,
+      r.temp ?? '',
+      r.ambient_temp ?? '',
+      r.humidity ?? '',
+      r.batt ?? '',
+      r.lat ?? '',
+      r.lng ?? '',
+      `"${(r.alert || '').replace(/"/g, '""')}"`
+    ].join(',');
     res.write(line + '\n');
   }
   res.end();

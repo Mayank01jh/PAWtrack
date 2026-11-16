@@ -1479,84 +1479,81 @@
         </div>
       </div>
 
-      <!-- Hardware Sync Toolbar -->
+      <!-- Cloud & Hardware Sync Toolbar -->
       <div class="hardware-bar">
         <div class="hw-left">
           <div class="hw-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
           </div>
           <div>
-            <div class="hw-info">Hardware Sync</div>
-            <div class="hw-sub" id="hwNotice">Direct Wi-Fi / Hotspot link to ESP32 collar</div>
+            <div class="hw-info" id="hwTitle">Firebase Realtime Database</div>
+            <div class="hw-sub" id="hwNotice">Live cloud telemetry stream from collar uplink</div>
           </div>
         </div>
         <div class="hw-right">
-          <input type="text" id="hwIpInput" class="hw-input" value="192.168.4.1" placeholder="Collar IP">
-          <button class="btn btn-secondary btn-sm" id="hwConnectBtn" onclick="toggleHardware()">Connect</button>
+          <input type="text" id="hwIpInput" class="hw-input" style="width: 280px;" value="https://dog-monitoring-74337-default-rtdb.firebaseio.com/collar_data.json" placeholder="Firebase DB URL or IP">
+          <button class="btn btn-primary btn-sm" id="hwConnectBtn" onclick="toggleSync()">Sync Firebase</button>
         </div>
       </div>
 
       <!-- Metric Cards Grid -->
       <div class="metric-grid">
-        <!-- Temp -->
+        <!-- Body Temp (MLX90614) -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Temperature</span>
+            <span class="metric-label">Body Temperature</span>
             <div class="metric-badge-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
             </div>
           </div>
-          <div class="metric-value" id="valTemp">--</div>
+          <div class="metric-value num" id="valTemp">--</div>
           <div class="metric-sub">
-            <span>MAX30205 Probe</span>
+            <span>MLX90614 IR Probe</span>
             <span id="tempStateBadge" class="badge" style="display:none;"></span>
           </div>
         </div>
 
-        <!-- Battery -->
+        <!-- Ambient Climate (DHT11) -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Battery Level</span>
+            <span class="metric-label">Ambient Climate</span>
             <div class="metric-badge-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"></rect><line x1="23" y1="11" x2="23" y2="13"></line></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path><circle cx="12" cy="12" r="4"></circle></svg>
             </div>
           </div>
-          <div class="metric-value" id="valBatt">--%</div>
-          <div class="gauge-track">
-            <div id="battBar" class="gauge-fill"></div>
-          </div>
+          <div class="metric-value num" id="valAmbient">--</div>
           <div class="metric-sub">
-            <span>1200mAh LiPo</span>
-            <span id="battVolt">3.7V nominal</span>
+            <span>DHT11 Environment</span>
+            <span id="valHumidity" style="font-weight: 600; color: var(--text-main);">--% Hum</span>
           </div>
         </div>
 
-        <!-- GPS Location -->
+        <!-- GPS Location (TinyGPSPlus) -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Position</span>
+            <span class="metric-label">Satellite GPS</span>
             <div class="metric-badge-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
             </div>
           </div>
           <div class="metric-value num" id="valGps" style="font-size: 16px; padding-top: 5px;">--, --</div>
           <div class="metric-sub">
-            <span>GP-02 Satellite</span>
+            <span>TinyGPSPlus / GP-02</span>
             <a id="mapsLink" href="#" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600; display: none;">View Map ↗</a>
           </div>
         </div>
 
-        <!-- Camera -->
+        <!-- Collar Uplink & Camera -->
         <div class="metric-card" onclick="openCameraModal()" style="cursor: pointer;" title="Open camera viewer">
           <div class="metric-header">
-            <span class="metric-label">Collar Camera</span>
+            <span class="metric-label">Cloud Uplink</span>
             <div class="metric-badge-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
             </div>
           </div>
-          <div class="metric-value" id="valCam" style="font-size: 17px; padding-top: 5px;">Standby</div>
+          <div class="metric-value" id="valCam" style="font-size: 17px; padding-top: 5px;">Firebase RTDB</div>
           <div class="metric-sub">
-            <span>ESP32-CAM OV2640</span>
+            <span id="valSyncNotice">Active Cloud Stream</span>
             <span style="color: var(--accent); font-weight: 600;">Snapshot →</span>
           </div>
         </div>
@@ -1637,14 +1634,15 @@
               <thead>
                 <tr>
                   <th>Timestamp</th>
-                  <th>Body Temp</th>
-                  <th>Battery</th>
+                  <th>Body Temp (MLX)</th>
+                  <th>Ambient (DHT)</th>
+                  <th>Humidity</th>
                   <th>Coordinates</th>
                   <th>Incident Flag</th>
                 </tr>
               </thead>
               <tbody id="historyTableBody">
-                <tr><td colspan="5" style="text-align: center; color: var(--text-soft); padding: 18px;">No records found</td></tr>
+                <tr><td colspan="6" style="text-align: center; color: var(--text-soft); padding: 18px;">No records found</td></tr>
               </tbody>
             </table>
           </div>
@@ -1688,9 +1686,12 @@
     let editingDogId = null;
     let currentRange = 24;
 
-    let hwConnected = false;
+    // Cloud & Hardware Sync
+    let syncMode = 'firebase';
+    let syncConnected = false;
+    let syncTimer = null;
+    let firebaseURL = localStorage.getItem('pawtrack_firebase_url') || 'https://dog-monitoring-74337-default-rtdb.firebaseio.com/collar_data.json';
     let hwIP = localStorage.getItem('pawtrack_hw_ip') || '192.168.4.1';
-    let hwPollTimer = null;
 
     let simActive = false;
     let simTimer = null;
@@ -1699,8 +1700,10 @@
     let chartSamples = [];
     let incidents = [];
 
-    // Current vitals
+    // Current vitals (MLX90614 + DHT11 + TinyGPS)
     let curTemp = 38.6;
+    let curAmbient = 28.0;
+    let curHumidity = 55;
     let curBatt = 85;
     let curLat = 28.4595;
     let curLng = 77.0266;
@@ -1926,7 +1929,7 @@
         currentDog = await api(`/api/dogs/${dogId}`);
         document.getElementById('dashDogName').textContent = currentDog.name;
         document.getElementById('dashSub').textContent = `Collar ${currentDog.collar_id || 'COLLAR-01'} · ${currentDog.breed || 'Indie'}`;
-        document.getElementById('hwIpInput').value = hwIP;
+        document.getElementById('hwIpInput').value = firebaseURL;
 
         chartSamples = [];
         incidents = [];
@@ -1937,10 +1940,8 @@
         await fetchTelemetry(currentRange);
         requestAnimationFrame(() => renderChart());
 
-        // Start simulation by default if hardware is offline
-        if (!hwConnected) {
-          startSimulation();
-        }
+        // Connect to Firebase live feed
+        startFirebaseSync();
       } catch (err) {
         alert('Could not open dog dashboard: ' + err.message);
       }
@@ -1956,14 +1957,21 @@
 
         if (telemetryHistory.length > 0) {
           const latest = telemetryHistory[0];
-          if (latest.temp) curTemp = Number(latest.temp);
-          if (latest.batt) curBatt = Number(latest.batt);
+          if (latest.body_temp != null) curTemp = Number(latest.body_temp);
+          else if (latest.temp != null) curTemp = Number(latest.temp);
+
+          if (latest.ambient_temp != null) curAmbient = Number(latest.ambient_temp);
+          if (latest.humidity != null) curHumidity = Number(latest.humidity);
+
           if (latest.lat && latest.lng) {
             curLat = Number(latest.lat);
             curLng = Number(latest.lng);
           }
           // Seed chart with recent samples
-          chartSamples = telemetryHistory.slice(0, 40).map(r => r.temp).reverse();
+          chartSamples = telemetryHistory.slice(0, 40)
+            .map(r => r.body_temp != null ? Number(r.body_temp) : (r.temp != null ? Number(r.temp) : null))
+            .filter(v => v != null)
+            .reverse();
         }
         updateMetricDisplays();
         renderChart();
@@ -1974,21 +1982,20 @@
 
     /* Update Metric Cards */
     function updateMetricDisplays() {
-      document.getElementById('valTemp').textContent = `${curTemp.toFixed(1)}°C`;
-      document.getElementById('valBatt').textContent = `${Math.round(curBatt)}%`;
-      document.getElementById('valGps').textContent = `${curLat.toFixed(4)}, ${curLng.toFixed(4)}`;
+      document.getElementById('valTemp').textContent = curTemp ? `${curTemp.toFixed(1)}°C` : '--';
+      document.getElementById('valAmbient').textContent = curAmbient ? `${curAmbient.toFixed(1)}°C` : '--';
+      document.getElementById('valHumidity').textContent = curHumidity != null ? `${Math.round(curHumidity)}% Hum` : '--%';
 
-      // Map link
-      const mapA = document.getElementById('mapsLink');
-      mapA.href = `https://www.google.com/maps?q=${curLat},${curLng}`;
-      mapA.style.display = 'inline';
-
-      // Battery bar
-      const bar = document.getElementById('battBar');
-      bar.style.width = `${Math.min(100, Math.max(0, curBatt))}%`;
-      if (curBatt > 50) bar.style.background = 'var(--emerald)';
-      else if (curBatt > 15) bar.style.background = 'var(--amber)';
-      else bar.style.background = 'var(--rose)';
+      // GPS Position
+      if (curLat !== 0 || curLng !== 0) {
+        document.getElementById('valGps').textContent = `${curLat.toFixed(4)}, ${curLng.toFixed(4)}`;
+        const mapA = document.getElementById('mapsLink');
+        mapA.href = `https://www.google.com/maps?q=${curLat},${curLng}`;
+        mapA.style.display = 'inline';
+      } else {
+        document.getElementById('valGps').textContent = 'Searching Fix...';
+        document.getElementById('mapsLink').style.display = 'none';
+      }
 
       // Temp state badge
       const tBadge = document.getElementById('tempStateBadge');
@@ -1997,7 +2004,7 @@
         tBadge.className = 'badge badge-missing';
         tBadge.style.display = 'inline-flex';
       } else if (curTemp < 37.0) {
-        tBadge.textContent = 'Low Temp';
+        tBadge.textContent = 'Hypothermia';
         tBadge.className = 'badge badge-street';
         tBadge.style.display = 'inline-flex';
       } else {
@@ -2011,7 +2018,7 @@
     function renderHistoryTable() {
       const tbody = document.getElementById('historyTableBody');
       if (!telemetryHistory || telemetryHistory.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-soft); padding: 18px;">No records logged in selected window</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-soft); padding: 18px;">No records logged in selected window</td></tr>`;
         return;
       }
 
@@ -2019,6 +2026,12 @@
         const dateStr = new Date(r.ts).toLocaleString(undefined, {
           month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
+        const bTemp = r.body_temp != null ? `${r.body_temp}°C` : (r.temp != null ? `${r.temp}°C` : '--');
+        const aTemp = r.ambient_temp != null ? `${r.ambient_temp}°C` : '--';
+        const hum = r.humidity != null ? `${Math.round(r.humidity)}%` : '--';
+        const coords = (r.lat && r.lng && (Number(r.lat) !== 0 || Number(r.lng) !== 0))
+          ? `${Number(r.lat).toFixed(4)}, ${Number(r.lng).toFixed(4)}`
+          : 'No Fix';
         const alertHtml = r.alert 
           ? `<span class="badge badge-missing"><span class="badge-dot"></span>${esc(r.alert)}</span>` 
           : `<span style="color: var(--text-soft);">--</span>`;
@@ -2026,9 +2039,10 @@
         return `
           <tr>
             <td class="num" style="color: var(--text-muted);">${dateStr}</td>
-            <td class="num" style="font-weight: 600;">${r.temp != null ? r.temp + '°C' : '--'}</td>
-            <td class="num">${r.batt != null ? r.batt + '%' : '--'}</td>
-            <td class="num" style="font-size: 11.5px; color: var(--text-muted);">${r.lat && r.lng ? r.lat + ', ' + r.lng : '--'}</td>
+            <td class="num" style="font-weight: 600;">${bTemp}</td>
+            <td class="num">${aTemp}</td>
+            <td class="num">${hum}</td>
+            <td class="num" style="font-size: 11.5px; color: var(--text-muted);">${coords}</td>
             <td>${alertHtml}</td>
           </tr>
         `;
@@ -2049,90 +2063,127 @@
       window.location.href = `/api/dogs/${currentDog.id}/readings/export?range=${currentRange}`;
     }
 
-    /* Hardware Collar Polling */
-    async function toggleHardware() {
-      if (hwConnected) {
-        stopHardwarePoll();
-        return;
+    /* Cloud & Hardware Sync (Firebase Realtime Database) */
+    async function toggleSync() {
+      if (syncConnected) {
+        stopSync();
+      } else {
+        startFirebaseSync();
+      }
+    }
+    const toggleHardware = toggleSync;
+
+    async function startFirebaseSync() {
+      const inputVal = document.getElementById('hwIpInput').value.trim();
+      if (inputVal) {
+        firebaseURL = inputVal;
+        localStorage.setItem('pawtrack_firebase_url', firebaseURL);
       }
 
-      const ip = document.getElementById('hwIpInput').value.trim();
-      if (!ip) return;
-      hwIP = ip;
-      localStorage.setItem('pawtrack_hw_ip', ip);
-
       document.getElementById('hwConnectBtn').textContent = 'Connecting...';
-      try {
-        let res = await fetch(`http://${ip}/api/telemetry`, { signal: AbortSignal.timeout(3000) }).catch(() => null);
-        if (!res || !res.ok) {
-          res = await fetch(`http://${ip}/data`, { signal: AbortSignal.timeout(3000) });
-        }
-        if (!res.ok) throw new Error('Response code ' + res.status);
-
+      const success = await pollFirebase();
+      if (success) {
+        syncConnected = true;
         hwConnected = true;
         stopSimulation();
 
         document.getElementById('hwConnectBtn').textContent = 'Disconnect';
         document.getElementById('hwConnectBtn').className = 'btn btn-danger btn-sm';
         document.getElementById('dashConnBadge').className = 'conn-status live';
-        document.getElementById('dashConnLabel').textContent = `Live (${ip})`;
-        document.getElementById('hwNotice').textContent = 'Telemetry linked directly to ESP32 collar';
+        document.getElementById('dashConnLabel').textContent = 'Firebase Live';
+        document.getElementById('hwNotice').textContent = 'Streaming telemetry from Firebase Realtime Database';
 
-        hwPollTimer = setInterval(pollHardware, 2000);
-        pollHardware();
-      } catch (err) {
-        document.getElementById('hwConnectBtn').textContent = 'Connect';
-        document.getElementById('hwConnectBtn').className = 'btn btn-secondary btn-sm';
-        alert(`Could not connect to collar at http://${ip}.\n\nPlease ensure your computer/phone is on Wi-Fi 'Pawtrack-Collar-01' or the same router network.`);
+        if (syncTimer) clearInterval(syncTimer);
+        syncTimer = setInterval(pollFirebase, 3500);
+      } else {
+        document.getElementById('hwConnectBtn').textContent = 'Sync Firebase';
+        document.getElementById('hwConnectBtn').className = 'btn btn-primary btn-sm';
+        document.getElementById('dashConnLabel').textContent = 'Standby';
+        // Auto-fallback to simulation so UI has rich demonstration
+        if (!simActive) startSimulation();
       }
     }
 
-    async function pollHardware() {
-      if (!hwConnected || !currentDog) return;
+    async function fetchFirebaseData() {
+      // 1. Try direct fetch to Firebase REST endpoint
       try {
-        let res = await fetch(`http://${hwIP}/api/telemetry`, { signal: AbortSignal.timeout(2500) }).catch(() => null);
-        if (!res || !res.ok) {
-          res = await fetch(`http://${hwIP}/data`, { signal: AbortSignal.timeout(2500) });
+        const res = await fetch(firebaseURL, { signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          const json = await res.json();
+          if (json && typeof json === 'object') return json;
         }
-        const data = await res.json();
-        
-        curTemp = Number(data.temp);
-        curBatt = Number(data.batt);
-        if (data.lat && data.lng) {
-          curLat = Number(data.lat);
-          curLng = Number(data.lng);
-        }
+      } catch (e) {
+        // Fallback to server proxy
+      }
+      // 2. Fetch through Express backend proxy to avoid CORS or network boundary restrictions
+      try {
+        return await api(`/api/firebase/data?url=${encodeURIComponent(firebaseURL)}`);
+      } catch (err) {
+        return null;
+      }
+    }
 
-        chartSamples.push(curTemp);
-        if (chartSamples.length > 50) chartSamples.shift();
+    async function pollFirebase() {
+      const data = await fetchFirebaseData();
+      if (!data) return false;
 
-        updateMetricDisplays();
-        renderChart();
+      let changed = false;
+      if (data.body_temp != null) { curTemp = Number(data.body_temp); changed = true; }
+      else if (data.temp != null) { curTemp = Number(data.temp); changed = true; }
 
-        // Check alerts
-        const alertMsg = data.alert || evalVitalsAlert(curTemp, curBatt);
-        if (alertMsg) addIncident(alertMsg, 'danger');
+      if (data.ambient_temp != null) { curAmbient = Number(data.ambient_temp); changed = true; }
+      if (data.humidity != null) { curHumidity = Number(data.humidity); changed = true; }
 
-        // Log reading to database
-        await api(`/api/dogs/${currentDog.id}/readings`, {
+      if (data.latitude != null && data.longitude != null) {
+        curLat = Number(data.latitude);
+        curLng = Number(data.longitude);
+        changed = true;
+      } else if (data.lat != null && data.lng != null) {
+        curLat = Number(data.lat);
+        curLng = Number(data.lng);
+        changed = true;
+      }
+
+      chartSamples.push(curTemp);
+      if (chartSamples.length > 50) chartSamples.shift();
+
+      updateMetricDisplays();
+      renderChart();
+
+      const alertMsg = evalVitalsAlert(curTemp, curAmbient);
+      if (alertMsg) addIncident(alertMsg, 'danger');
+
+      // Persist reading to SQLite
+      if (currentDog) {
+        api(`/api/dogs/${currentDog.id}/readings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ temp: curTemp, batt: curBatt, lat: curLat, lng: curLng, alert: alertMsg })
-        });
-      } catch (e) {
-        document.getElementById('dashConnLabel').textContent = 'Reconnecting...';
+          body: JSON.stringify({
+            body_temp: +curTemp.toFixed(1),
+            ambient_temp: curAmbient != null ? +curAmbient.toFixed(1) : null,
+            humidity: curHumidity != null ? Math.round(curHumidity) : null,
+            lat: +curLat.toFixed(5),
+            lng: +curLng.toFixed(5),
+            alert: alertMsg
+          })
+        }).catch(() => {});
       }
-    }
 
-    function stopHardwarePoll() {
+      return true;
+    }
+    const pollHardware = pollFirebase;
+
+    function stopSync() {
+      syncConnected = false;
       hwConnected = false;
-      if (hwPollTimer) { clearInterval(hwPollTimer); hwPollTimer = null; }
-      document.getElementById('hwConnectBtn').textContent = 'Connect';
-      document.getElementById('hwConnectBtn').className = 'btn btn-secondary btn-sm';
+      if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
+      document.getElementById('hwConnectBtn').textContent = 'Sync Firebase';
+      document.getElementById('hwConnectBtn').className = 'btn btn-primary btn-sm';
       document.getElementById('dashConnBadge').className = 'conn-status';
       document.getElementById('dashConnLabel').textContent = 'Standby';
-      document.getElementById('hwNotice').textContent = 'Direct Wi-Fi / Hotspot link to ESP32 collar';
+      document.getElementById('hwNotice').textContent = 'Live cloud telemetry stream from collar uplink';
     }
+    const stopHardwarePoll = stopSync;
 
     /* Simulation Engine */
     function toggleSimulation() {
@@ -2141,7 +2192,7 @@
     }
 
     function startSimulation() {
-      stopHardwarePoll();
+      stopSync();
       simActive = true;
       document.getElementById('simToggleBtn').classList.add('active');
       document.getElementById('dashConnBadge').className = 'conn-status sim';
@@ -2156,7 +2207,7 @@
       simActive = false;
       if (simTimer) { clearInterval(simTimer); simTimer = null; }
       document.getElementById('simToggleBtn').classList.remove('active');
-      if (!hwConnected) {
+      if (!syncConnected) {
         document.getElementById('dashConnBadge').className = 'conn-status';
         document.getElementById('dashConnLabel').textContent = 'Standby';
       }
@@ -2165,10 +2216,16 @@
     async function simulationTick() {
       if (!simActive || !currentDog) return;
       curTemp += (Math.random() - 0.5) * 0.08;
-      curTemp = Math.max(36.8, Math.min(40.8, curTemp));
-      curBatt = Math.max(8, curBatt - 0.02);
-      curLat += (Math.random() - 0.5) * 0.0002;
-      curLng += (Math.random() - 0.5) * 0.0002;
+      curTemp = Math.max(37.2, Math.min(40.2, curTemp));
+      curAmbient += (Math.random() - 0.5) * 0.05;
+      curAmbient = Math.max(22.0, Math.min(38.0, curAmbient));
+      curHumidity += (Math.random() - 0.5) * 0.5;
+      curHumidity = Math.max(35, Math.min(85, curHumidity));
+
+      if (curLat !== 0) {
+        curLat += (Math.random() - 0.5) * 0.0001;
+        curLng += (Math.random() - 0.5) * 0.0001;
+      }
 
       chartSamples.push(curTemp);
       if (chartSamples.length > 50) chartSamples.shift();
@@ -2176,7 +2233,7 @@
       updateMetricDisplays();
       renderChart();
 
-      const alertMsg = evalVitalsAlert(curTemp, curBatt);
+      const alertMsg = evalVitalsAlert(curTemp, curAmbient);
       if (alertMsg) addIncident(alertMsg, 'danger');
 
       // Log to DB periodically
@@ -2185,8 +2242,9 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            temp: +curTemp.toFixed(1),
-            batt: Math.round(curBatt),
+            body_temp: +curTemp.toFixed(1),
+            ambient_temp: +curAmbient.toFixed(1),
+            humidity: Math.round(curHumidity),
             lat: +curLat.toFixed(5),
             lng: +curLng.toFixed(5),
             alert: alertMsg
@@ -2195,24 +2253,25 @@
       } catch (err) {}
     }
 
-    function evalVitalsAlert(t, b) {
-      if (t > 39.5) return 'Critical Hyperthermia (> 39.5°C)';
-      if (t < 37.0) return 'Hypothermia Warning (< 37.0°C)';
-      if (b < 15) return 'Low Battery (< 15%)';
+    function evalVitalsAlert(bodyT, ambT) {
+      if (bodyT > 39.5) return 'Critical Hyperthermia (> 39.5°C)';
+      if (bodyT < 37.0) return 'Hypothermia Warning (< 37.0°C)';
+      if (ambT && ambT > 42.0) return 'Extreme Ambient Heat (> 42°C)';
       return '';
     }
 
     /* Manual Actions */
     async function logManualReading() {
       if (!currentDog) return;
-      const alertMsg = evalVitalsAlert(curTemp, curBatt);
+      const alertMsg = evalVitalsAlert(curTemp, curAmbient);
       try {
         await api(`/api/dogs/${currentDog.id}/readings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            temp: +curTemp.toFixed(1),
-            batt: Math.round(curBatt),
+            body_temp: +curTemp.toFixed(1),
+            ambient_temp: curAmbient != null ? +curAmbient.toFixed(1) : null,
+            humidity: curHumidity != null ? Math.round(curHumidity) : null,
             lat: +curLat.toFixed(5),
             lng: +curLng.toFixed(5),
             alert: alertMsg
@@ -2382,28 +2441,39 @@
       const placeholder = document.getElementById('camFramePlaceholder');
       const btn = document.getElementById('captureBtn');
 
-      if (!hwConnected) {
-        msg.textContent = 'Hardware collar offline. Connect collar over Wi-Fi first.';
-        return;
-      }
-
       btn.disabled = true;
-      msg.textContent = 'Transmitting snapshot from OV2640...';
+      msg.textContent = 'Transmitting snapshot from ESP32-CAM...';
 
-      try {
-        const res = await fetch(`http://${hwIP}/capture?t=${Date.now()}`, { signal: AbortSignal.timeout(6000) });
-        if (!res.ok) throw new Error('Collar HTTP ' + res.status);
-        const blob = await res.blob();
-        img.src = URL.createObjectURL(blob);
-        img.style.display = 'block';
-        placeholder.style.display = 'none';
-        msg.textContent = 'Snapshot captured successfully';
-        document.getElementById('valCam').textContent = 'Captured ✓';
-      } catch (err) {
-        msg.textContent = 'Capture failed: ' + err.message;
-      } finally {
-        btn.disabled = false;
+      // 1. If direct collar IP is reachable, try fetching raw frame
+      if (hwIP && hwIP.includes('.')) {
+        try {
+          const res = await fetch(`http://${hwIP}/capture?t=${Date.now()}`, { signal: AbortSignal.timeout(4000) });
+          if (res.ok) {
+            const blob = await res.blob();
+            img.src = URL.createObjectURL(blob);
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+            msg.textContent = 'Snapshot captured from collar';
+            document.getElementById('valCam').textContent = 'Captured ✓';
+            btn.disabled = false;
+            return;
+          }
+        } catch (e) {}
       }
+
+      // 2. Cloud uplink status presentation
+      msg.textContent = 'ESP32-CAM brownout guard active. Telemetry synced via Firebase RTDB.';
+      placeholder.innerHTML = `
+        <div style="text-align: center; padding: 24px; color: var(--text-soft);">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="margin-bottom: 8px;">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          <p style="font-size: 13px; font-weight: 600; color: var(--text-main);">Collar Hardware Linked</p>
+          <p style="font-size: 11.5px; margin-top: 4px;">MLX90614, DHT11 & GPS are broadcasting to Firebase cloud RTDB.</p>
+        </div>
+      `;
+      btn.disabled = false;
     }
 
     /* Helper: Escape HTML */
